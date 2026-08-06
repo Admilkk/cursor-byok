@@ -4,6 +4,7 @@ package execbridge
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -2285,6 +2286,18 @@ func buildReadMcpResourceCompletedToolCall(argsJSON []byte, result *agentv1.Read
 	}
 }
 
+func isSupportedReadImage(data []byte) bool {
+	if len(data) == 0 {
+		return false
+	}
+	switch strings.ToLower(strings.TrimSpace(http.DetectContentType(data))) {
+	case "image/png", "image/jpeg", "image/gif", "image/webp":
+		return true
+	default:
+		return false
+	}
+}
+
 // convertReadResultToReadToolResult 把 `ReadResult` 映射为 `ReadToolResult`。
 func convertReadResultToReadToolResult(result *agentv1.ReadResult) *agentv1.ReadToolResult {
 	if result == nil {
@@ -2318,7 +2331,9 @@ func convertReadResultToReadToolResult(result *agentv1.ReadResult) *agentv1.Read
 		if content != "" {
 			toolSuccess.Output = &agentv1.ReadToolSuccess_Content{Content: content}
 		} else if len(data) > 0 {
-			if len(data) > readReplayBinaryLimit {
+			if isSupportedReadImage(data) {
+				toolSuccess.Output = &agentv1.ReadToolSuccess_Data{Data: append([]byte(nil), data...)}
+			} else if len(data) > readReplayBinaryLimit {
 				toolSuccess.ExceededLimit = true
 				toolSuccess.Output = &agentv1.ReadToolSuccess_Content{
 					Content: replayTruncationNotice("Read binary data", readReplayBinaryLimit, 0, len(data)),

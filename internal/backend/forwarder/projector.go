@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"strings"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -215,6 +216,7 @@ func (projector *HistoryProjector) ProjectPromptReplay(conversation *Conversatio
 					if ok {
 						replayMessage.Name = toolName
 						replayMessage.Content = limitProjectedToolResultReplay(toolName, replayMessage.Content, payload.ResultText, true, historicalToolResult)
+						attachReadImageContentParts(&replayMessage, toolCall)
 						messages = append(messages, toModelMessage(replayMessage))
 						continue
 					}
@@ -249,12 +251,13 @@ func (projector *HistoryProjector) ProjectPromptReplay(conversation *Conversatio
 					replayMessages[index].OpenAIResponsesReasoningSummary = append(json.RawMessage(nil), payload.ReasoningSummary...)
 					applyPromptProviderMetadataToFirstToolCall(&replayMessages[index], payload.ProviderItemID, payload.ProviderCallID, payload.ProviderStatus)
 				}
-				for _, replay := range replayMessages {
-					if strings.TrimSpace(replay.Role) == "tool" {
-						toolName := firstNonEmpty(strings.TrimSpace(replay.Name), strings.TrimSpace(payload.ToolName))
-						replay.Content = limitProjectedToolResultReplay(toolName, replay.Content, payload.ResultText, true, historicalToolResult)
+				for index := range replayMessages {
+					if strings.TrimSpace(replayMessages[index].Role) == "tool" {
+						toolName := firstNonEmpty(strings.TrimSpace(replayMessages[index].Name), strings.TrimSpace(payload.ToolName))
+						replayMessages[index].Content = limitProjectedToolResultReplay(toolName, replayMessages[index].Content, payload.ResultText, true, historicalToolResult)
+						attachReadImageContentParts(&replayMessages[index], toolCall)
 					}
-					messages = append(messages, toModelMessage(replay))
+					messages = append(messages, toModelMessage(replayMessages[index]))
 				}
 				continue
 			}
@@ -303,6 +306,58 @@ func (projector *HistoryProjector) ProjectPromptReplay(conversation *Conversatio
 		}
 	}
 	return normalizeReplayMessageSequence(messages), nil
+}
+
+func attachReadImageContentParts(message *promptengine.Message, toolCall *agentv1.ToolCall) {
+	if message == nil || toolCall == nil || strings.TrimSpace(message.Role) != "tool" {
+		return
+	}
+	readToolCall := toolCall.GetReadToolCall()
+	if readToolCall == nil {
+		return
+	}
+	success := readToolCall.GetResult().GetSuccess()
+	if success == nil {
+		return
+	}
+	data := success.GetData()
+	mimeType := supportedReadImageMIMEType(data)
+	if mimeType == "" {
+		return
+	}
+	path := firstNonEmpty(strings.TrimSpace(success.GetPath()), strings.TrimSpace(readToolCall.GetArgs().GetPath()))
+	summary := fmt.Sprintf("read image path=%q mime=%s bytes=%d", path, mimeType, len(data))
+	if fileSize := success.GetFileSize(); fileSize > 0 && uint64(fileSize) != uint64(len(data)) {
+		summary += fmt.Sprintf(" file_size=%d", fileSize)
+	}
+	if success.GetExceededLimit() {
+		summary += " truncated=true"
+	}
+	message.Content = summary
+	message.ContentParts = []promptengine.ContentPart{
+		{Type: "text", Text: summary},
+		{
+			Type: "image",
+			Image: &promptengine.ImageContent{
+				MIMEType: mimeType,
+				Path:     path,
+				Data:     append([]byte(nil), data...),
+			},
+		},
+	}
+}
+
+func supportedReadImageMIMEType(data []byte) string {
+	if len(data) == 0 {
+		return ""
+	}
+	mimeType := strings.ToLower(strings.TrimSpace(http.DetectContentType(data)))
+	switch mimeType {
+	case "image/png", "image/jpeg", "image/gif", "image/webp":
+		return mimeType
+	default:
+		return ""
+	}
 }
 
 func compactedPromptProjectionEntries(entries []HistoryEntry) []HistoryEntry {
