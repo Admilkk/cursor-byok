@@ -11,17 +11,17 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func TestBuildCLIModelDetailsPreservesChannelCredentials(t *testing.T) {
+func TestBuildCLIModelDetailsPreservesChannelMetadata(t *testing.T) {
 	adapters := []legacyruntime.ModelAdapterConfig{
-		{ID: " channel-a ", ModelID: "model-a", APIKey: "provider-secret-a", BaseURL: "https://provider-a.example/v1"},
-		{ID: "channel-b", ModelID: "model-a"},
+		{ID: " channel-a ", DisplayName: " Model A ", ModelID: "model-a", APIKey: "provider-secret-a", BaseURL: "https://provider-a.example/v1"},
+		{ID: "channel-b", DisplayName: "Model B", ModelID: "model-a"},
 		{ID: "", ModelID: "model-c"},
 	}
 
 	got := buildCLIModelDetails(adapters)
 	want := []map[string]any{
-		{"modelId": "channel-a", "displayModelId": "channel-a", "apiKeyCredentials": map[string]any{"apiKey": "provider-secret-a", "baseUrl": "https://provider-a.example/v1"}},
-		{"modelId": "channel-b", "displayModelId": "channel-b", "apiKeyCredentials": map[string]any{"apiKey": "", "baseUrl": ""}},
+		{"modelId": "channel-a", "displayModelId": "channel-a", "displayName": "Model A", "displayNameShort": "Model A", "apiKeyCredentials": map[string]any{"apiKey": "provider-secret-a", "baseUrl": "https://provider-a.example/v1"}},
+		{"modelId": "channel-b", "displayModelId": "channel-b", "displayName": "Model B", "displayNameShort": "Model B", "apiKeyCredentials": map[string]any{"apiKey": "", "baseUrl": ""}},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Fatalf("build CLI model details: got %v, want %v", got, want)
@@ -29,7 +29,7 @@ func TestBuildCLIModelDetailsPreservesChannelCredentials(t *testing.T) {
 }
 
 func TestEncodeCLIModelsUsesAgentModelDetailsWireFormat(t *testing.T) {
-	payload := map[string]any{"models": buildCLIModelDetails([]legacyruntime.ModelAdapterConfig{{ID: "channel-a", APIKey: "provider-secret", BaseURL: "https://provider.example/v1"}})}
+	payload := map[string]any{"models": buildCLIModelDetails([]legacyruntime.ModelAdapterConfig{{ID: "channel-a", DisplayName: "Model A", APIKey: "provider-secret", BaseURL: "https://provider.example/v1"}})}
 	encoded, err := encodeMockProto("aiserver.v1.GetUsableModelsResponse", payload)
 	if err != nil {
 		t.Fatalf("encode CLI models: %v", err)
@@ -45,6 +45,9 @@ func TestEncodeCLIModelsUsesAgentModelDetailsWireFormat(t *testing.T) {
 	model := response.Models[0]
 	if model.GetModelId() != "channel-a" || model.GetDisplayModelId() != "channel-a" {
 		t.Fatalf("decoded channel IDs: model=%q display=%q", model.GetModelId(), model.GetDisplayModelId())
+	}
+	if model.GetDisplayName() != "Model A" || model.GetDisplayNameShort() != "Model A" {
+		t.Fatalf("decoded display names: name=%q short=%q", model.GetDisplayName(), model.GetDisplayNameShort())
 	}
 	if credentials := model.GetApiKeyCredentials(); credentials == nil || credentials.GetApiKey() != "provider-secret" || credentials.GetBaseUrl() != "https://provider.example/v1" {
 		t.Fatalf("decoded relay credentials: %#v", credentials)
