@@ -728,8 +728,10 @@ func buildCLIModelDetails(adapters []legacyruntime.ModelAdapterConfig) []map[str
 			continue
 		}
 		models = append(models, map[string]any{
-			"modelId":        channelID,
-			"displayModelId": channelID,
+			"modelId":          channelID,
+			"displayModelId":   channelID,
+			"displayName":      strings.TrimSpace(adapter.DisplayName),
+			"displayNameShort": strings.TrimSpace(adapter.DisplayName),
 			"apiKeyCredentials": map[string]any{
 				"apiKey":  strings.TrimSpace(adapter.APIKey),
 				"baseUrl": strings.TrimSpace(adapter.BaseURL),
