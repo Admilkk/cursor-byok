@@ -59,6 +59,55 @@ func TestSyncCursorAuthStateDBDisablesCachedTerminalOutputUIStreamingIdempotentl
 	}
 }
 
+func TestDisableCursorStatsigGatesInDBDoesNotInjectAuthState(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "state.vscdb")
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("open temporary state db: %v", err)
+	}
+	if _, err := db.Exec("CREATE TABLE ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)"); err != nil {
+		db.Close()
+		t.Fatalf("create ItemTable: %v", err)
+	}
+	bootstrap := map[string]any{
+		"feature_gates": map[string]any{},
+		"hash_used":     "none",
+	}
+	raw, err := json.Marshal(bootstrap)
+	if err != nil {
+		db.Close()
+		t.Fatalf("encode bootstrap: %v", err)
+	}
+	if _, err := db.Exec("INSERT INTO ItemTable(key, value) VALUES(?, ?)", cursorStateStatsigBootstrapKey, raw); err != nil {
+		db.Close()
+		t.Fatalf("insert bootstrap: %v", err)
+	}
+	if err := db.Close(); err != nil {
+		t.Fatalf("close setup db: %v", err)
+	}
+
+	if err := disableCursorStatsigGatesInDB(path); err != nil {
+		t.Fatalf("disable statsig gates: %v", err)
+	}
+	updated := readCursorStatsigBootstrapForTest(t, path)
+	for _, gate := range cursorStateDisabledStatsigGates {
+		assertCursorStatsigGateValueForTest(t, updated, gate, false)
+	}
+
+	db, err = sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatalf("reopen state db: %v", err)
+	}
+	defer db.Close()
+	var authKeyCount int
+	if err := db.QueryRow("SELECT COUNT(*) FROM ItemTable WHERE key LIKE 'cursorAuth/%'").Scan(&authKeyCount); err != nil {
+		t.Fatalf("count auth keys: %v", err)
+	}
+	if authKeyCount != 0 {
+		t.Fatalf("statsig sync injected %d auth keys", authKeyCount)
+	}
+}
+
 func readCursorStatsigBootstrapForTest(t *testing.T, path string) []byte {
 	t.Helper()
 	db, err := sql.Open("sqlite", path)

@@ -2,23 +2,18 @@ package upstream
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"math/big"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 
 	"cursor/gen/agentv1"
 	"cursor/gen/aiserverv1"
 	"cursor/internal/logger"
 	"cursor/internal/netproxy"
-	legacyruntime "cursor/internal/runtime"
 
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -87,14 +82,6 @@ func buildUpstreamRequest(reqCtx *RequestContext, body []byte, options ForwardOp
 	}
 	upstreamRequest.Host = reqCtx.TargetURL.Host
 
-	if shouldRewriteHost(reqCtx.TargetURL.Hostname()) {
-		auth := formatBearerAuthorization(legacyruntime.LocalRelayToken)
-		if auth == "" {
-			return nil, nil, legacyruntime.ErrInvalidSystemSetting
-		}
-		upstreamRequest.Header.Set("Authorization", auth)
-		upstreamRequest.Header.Set("x-cursor-checksum", BuildCursorChecksum(auth))
-	}
 	if options.PatchHeaders != nil {
 		options.PatchHeaders(upstreamRequest.Header)
 	}
@@ -167,59 +154,19 @@ func copyRequestHeadersForUpstream(target http.Header, source http.Header) {
 }
 
 func copyResponseHeadersToClient(target http.Header, source http.Header) {
+	localWildcardCORS := target.Get("Access-Control-Allow-Origin") == "*"
 	for key, values := range source {
 		lowerKey := strings.ToLower(key)
 		if _, exists := hopByHopHeaders[lowerKey]; exists {
+			continue
+		}
+		if localWildcardCORS && (lowerKey == "access-control-allow-origin" || lowerKey == "access-control-allow-credentials") {
 			continue
 		}
 		for _, value := range values {
 			target.Add(key, value)
 		}
 	}
-}
-
-func shouldRewriteHost(host string) bool {
-	normalized := strings.TrimSuffix(strings.ToLower(strings.TrimSpace(host)), ".")
-	if normalized == "" {
-		return false
-	}
-	return normalized == "cursor.sh" || strings.HasSuffix(normalized, ".cursor.sh")
-}
-
-func BuildCursorChecksum(authorization string) string {
-	const (
-		checksumTimestampDivisor = 1_000_000
-		checksumInitialSeed      = 165
-	)
-	timestamp := time.Now().UnixMilli() / checksumTimestampDivisor
-	timestampBytes := make([]byte, 6)
-	timestampBigInt := big.NewInt(timestamp)
-	for index := 0; index < len(timestampBytes); index++ {
-		shift := uint((len(timestampBytes) - 1 - index) * 8)
-		timestampBytes[index] = byte(new(big.Int).Rsh(timestampBigInt, shift).Uint64() & 0xff)
-	}
-	seed := checksumInitialSeed
-	for index := 0; index < len(timestampBytes); index++ {
-		current := int(timestampBytes[index]^byte(seed)) + (index % 256)
-		current &= 0xff
-		timestampBytes[index] = byte(current)
-		seed = current
-	}
-	prefix := strings.TrimRight(base64.StdEncoding.EncodeToString(timestampBytes), "=")
-	hashBytes := sha256.Sum256([]byte(strings.TrimSpace(authorization)))
-	hash := fmt.Sprintf("%x", hashBytes)
-	return prefix + hash[:32]
-}
-
-func formatBearerAuthorization(raw string) string {
-	value := strings.TrimSpace(raw)
-	if value == "" {
-		return ""
-	}
-	if strings.HasPrefix(strings.ToLower(value), "bearer ") {
-		return value
-	}
-	return "Bearer " + value
 }
 
 func shouldRequestCarryBody(method string) bool {
@@ -236,17 +183,6 @@ func marshalJSONBody(payload map[string]any) ([]byte, error) {
 		return []byte("{}"), nil
 	}
 	return json.Marshal(payload)
-}
-
-func handleMockJSON(reqCtx *RequestContext, route *Route) error {
-	responseBody, err := marshalJSONBody(route.JSONBody)
-	if err != nil {
-		return err
-	}
-	reqCtx.ResponseWriter.Header().Set("content-type", "application/json")
-	reqCtx.ResponseWriter.WriteHeader(route.StatusCode)
-	_, _ = reqCtx.ResponseWriter.Write(responseBody)
-	return nil
 }
 
 func handleMockProto(reqCtx *RequestContext, route *Route) error {
@@ -268,91 +204,6 @@ func handleMockProto(reqCtx *RequestContext, route *Route) error {
 	reqCtx.ResponseWriter.WriteHeader(route.StatusCode)
 	_, _ = reqCtx.ResponseWriter.Write(responseBody)
 	return nil
-}
-
-func handleMockOAuth(reqCtx *RequestContext, route *Route) error {
-	payload := struct {
-		RefreshToken string `json:"refresh_token"`
-	}{}
-	_ = json.Unmarshal(reqCtx.RequestBody, &payload)
-	responseBody, err := marshalJSONBody(map[string]any{
-		"access_token": payload.RefreshToken,
-		"id_token":     payload.RefreshToken,
-		"shouldLogout": false,
-	})
-	if err != nil {
-		return err
-	}
-	reqCtx.ResponseWriter.Header().Set("content-type", "application/json")
-	reqCtx.ResponseWriter.WriteHeader(http.StatusOK)
-	_, _ = reqCtx.ResponseWriter.Write(responseBody)
-	return nil
-}
-
-func handleMockAuthFullStripeProfile(reqCtx *RequestContext, route *Route) error {
-	_ = route
-	responseBody, err := marshalJSONBody(map[string]any{
-		"membershipType":          localUltraMembershipType,
-		"subscriptionStatus":      localUltraSubscriptionStatus,
-		"lastPaymentFailed":       false,
-		"pendingCancellationDate": "",
-		"daysRemainingOnTrial":    0,
-		"paymentId":               localUltraPaymentID,
-	})
-	if err != nil {
-		return err
-	}
-	reqCtx.ResponseWriter.Header().Set("content-type", "application/json")
-	reqCtx.ResponseWriter.WriteHeader(http.StatusOK)
-	_, _ = reqCtx.ResponseWriter.Write(responseBody)
-	return nil
-}
-
-func handleMockAuthStripeProfile(reqCtx *RequestContext, route *Route) error {
-	_ = route
-	responseBody, err := json.Marshal(localUltraPaymentID)
-	if err != nil {
-		return err
-	}
-	reqCtx.ResponseWriter.Header().Set("content-type", "application/json")
-	reqCtx.ResponseWriter.WriteHeader(http.StatusOK)
-	_, _ = reqCtx.ResponseWriter.Write(responseBody)
-	return nil
-}
-
-func handleMockAuthPoll(reqCtx *RequestContext, route *Route) error {
-	_ = route
-	responseBody, err := marshalJSONBody(map[string]any{
-		"accessToken":  legacyruntime.InjectAuthToken,
-		"refreshToken": legacyruntime.InjectAuthToken,
-		"authId":       "local_auth",
-	})
-	if err != nil {
-		return err
-	}
-	reqCtx.ResponseWriter.Header().Set("content-type", "application/json")
-	reqCtx.ResponseWriter.WriteHeader(http.StatusOK)
-	_, _ = reqCtx.ResponseWriter.Write(responseBody)
-	return nil
-}
-
-func handleMockAuthEmail(reqCtx *RequestContext, route *Route) error {
-	_ = route
-	responseBody := encodeAuthGetEmailResponse(legacyruntime.InjectAccountEmail)
-	reqCtx.ResponseWriter.Header().Set("content-type", "application/proto")
-	reqCtx.ResponseWriter.Header().Set("content-length", strconv.Itoa(len(responseBody)))
-	reqCtx.ResponseWriter.WriteHeader(http.StatusOK)
-	_, _ = reqCtx.ResponseWriter.Write(responseBody)
-	return nil
-}
-
-func encodeAuthGetEmailResponse(email string) []byte {
-	output := make([]byte, 0, len(email)+8)
-	output = append(output, 0x0a)
-	output = appendProtoVarint(output, uint64(len(email)))
-	output = append(output, []byte(email)...)
-	output = append(output, 0x10, 0x03) // GetEmailResponse.SignUpType.SIGN_UP_TYPE_GOOGLE
-	return output
 }
 
 func appendProtoVarint(output []byte, value uint64) []byte {
@@ -431,8 +282,6 @@ func newProtoMessage(typeName string) (proto.Message, error) {
 		return &aiserverv1.GetTeamAdminSettingsResponse{}, nil
 	case "aiserver.v1.GetTeamReposResponse":
 		return &aiserverv1.GetTeamReposResponse{}, nil
-	case "aiserver.v1.ListMarketplacesResponse":
-		return &aiserverv1.ListMarketplacesResponse{}, nil
 	case "aiserver.v1.GetUsableModelsResponse":
 		return &agentv1.GetUsableModelsResponse{}, nil
 	case "aiserver.v1.GetDefaultModelForCliResponse":
@@ -441,10 +290,6 @@ func newProtoMessage(typeName string) (proto.Message, error) {
 		return &aiserverv1.GetDefaultModelResponse{}, nil
 	case "aiserver.v1.GetGlobalCommandsResponse":
 		return &aiserverv1.GetGlobalCommandsResponse{}, nil
-	case "aiserver.v1.GetEffectiveUserPluginsResponse":
-		return &aiserverv1.GetEffectiveUserPluginsResponse{}, nil
-	case "aiserver.v1.RegisterMarketplaceAndPluginsResponse":
-		return &aiserverv1.RegisterMarketplaceAndPluginsResponse{}, nil
 	case "aiserver.v1.GetCliDownloadUrlResponse":
 		return &aiserverv1.GetCliDownloadUrlResponse{}, nil
 	case "aiserver.v1.SubmitLogsResponse":

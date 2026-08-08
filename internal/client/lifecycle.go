@@ -11,7 +11,6 @@ import (
 	"cursor/internal/logger"
 	"cursor/internal/mitm"
 	"cursor/internal/netproxy"
-	localruntime "cursor/internal/runtime"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 )
@@ -85,11 +84,8 @@ func (s *ProxyService) StartProxy() (ProxyState, error) {
 	if err := s.ensureProxy(cfg); err != nil {
 		return fail("ensure_proxy", err)
 	}
-
-	// 启动时注入账号信息
-	if err := cursor.InjectCursorUserInfo(localruntime.InjectAccountEmail, localruntime.InjectAuthToken); err != nil {
-		logger.Errorf("injectCursorUserInfo failed: %v", err)
-		// 不阻断启动，仅记录日志
+	if err := cursor.DisableCursorStatsigGates(); err != nil {
+		logger.Errorf("disableCursorStatsigGates failed: %v", err)
 	}
 
 	if s.proxy != nil && !s.proxy.IsRunning() {
@@ -264,9 +260,6 @@ func (s *ProxyService) ShutdownForQuit() {
 		if err := s.backendHost.Stop(ctx); err != nil && !errors.Is(err, context.Canceled) {
 			finalErr = errors.Join(finalErr, err)
 		}
-	}
-	if s.cursorAccount != nil {
-		s.cursorAccount.Shutdown()
 	}
 	if finalErr != nil {
 		s.setLastError(finalErr)

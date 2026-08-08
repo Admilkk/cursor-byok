@@ -78,7 +78,7 @@ func Run(resources EmbeddedResources) error {
 		return err
 	}
 
-	defaultBackendBaseURL := "http://" + serverconfig.DefaultBackendListenAddr
+	defaultBackendBaseURL := browserReachableLoopbackBaseURL(serverconfig.DefaultBackendListenAddr)
 	proxyServer, err := mitm.NewProxyServer(serverconfig.DefaultProxyListenAddr, defaultBackendBaseURL, "", "", certManager)
 	if err != nil {
 		return err
@@ -433,13 +433,16 @@ func windowsAdditionalBrowserArgs() []string {
 func browserReachableLoopbackBaseURL(listenAddr string) string {
 	host, port, err := net.SplitHostPort(strings.TrimSpace(listenAddr))
 	if err != nil || strings.TrimSpace(port) == "" {
-		return "http://" + serverconfig.DefaultBackendListenAddr
+		return "https://localhost:8000"
 	}
 	host = strings.TrimSpace(host)
 	if host == "" || host == "0.0.0.0" || host == "::" || host == "[::]" {
 		host = "127.0.0.1"
 	}
-	return "http://" + net.JoinHostPort(host, port)
+	if host == "127.0.0.1" || host == "::1" || host == "localhost" {
+		host = "localhost"
+	}
+	return "https://" + net.JoinHostPort(host, port)
 }
 
 // logEmbeddedCAInfo 用于处理与 logEmbeddedCAInfo 相关的逻辑。

@@ -2,6 +2,8 @@ package backend
 
 import (
 	"context"
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"net"
 	"net/http"
@@ -27,11 +29,11 @@ const healthPath = "/healthz"
 const tabServerBaseURL = "https://tab.leokun.cn"
 
 type Host struct {
-	store            *serverconfig.Store
-	listenAddr       string
-	configs          *serverconfig.Manager
-	healthHTTP       *http.Client
-	controlPlaneAuth upstream.AuthorizationProvider
+	store          *serverconfig.Store
+	listenAddr     string
+	configs        *serverconfig.Manager
+	healthHTTP     *http.Client
+	tlsCertificate *tls.Certificate
 
 	runMu      sync.RWMutex
 	httpServer *http.Server
@@ -41,7 +43,20 @@ type Host struct {
 	mux http.Handler
 }
 
-func NewHost(store *serverconfig.Store, controlPlaneAuth upstream.AuthorizationProvider) (*Host, error) {
+type HostOption func(*Host) error
+
+func WithTLSCertificate(certificate *tls.Certificate) HostOption {
+	return func(host *Host) error {
+		if certificate == nil || len(certificate.Certificate) == 0 || certificate.PrivateKey == nil {
+			return fmt.Errorf("backend TLS certificate is invalid")
+		}
+		copied := *certificate
+		host.tlsCertificate = &copied
+		return nil
+	}
+}
+
+func NewHost(store *serverconfig.Store, options ...HostOption) (*Host, error) {
 	if store == nil {
 		return nil, fmt.Errorf("backend config store is required")
 	}
@@ -51,12 +66,19 @@ func NewHost(store *serverconfig.Store, controlPlaneAuth upstream.AuthorizationP
 	}
 	cfg := configs.Current()
 	host := &Host{
-		store:            store,
-		listenAddr:       cfg.BackendListenAddr,
-		configs:          configs,
-		healthHTTP:       newLoopbackHTTPClient(),
-		controlPlaneAuth: controlPlaneAuth,
+		store:      store,
+		listenAddr: cfg.BackendListenAddr,
+		configs:    configs,
 	}
+	for _, option := range options {
+		if option == nil {
+			continue
+		}
+		if err := option(host); err != nil {
+			return nil, err
+		}
+	}
+	host.healthHTTP = newLoopbackHTTPClient(host.tlsCertificate)
 	if err := host.rebuild(cfg); err != nil {
 		return nil, err
 	}
@@ -107,7 +129,14 @@ func (host *Host) BaseURL() string {
 	if listenAddr == "" {
 		return ""
 	}
-	return "http://" + listenAddr
+	if host.tlsCertificate == nil {
+		return "http://" + listenAddr
+	}
+	serverName := "localhost"
+	if _, port, err := net.SplitHostPort(listenAddr); err == nil {
+		return "https://" + net.JoinHostPort(serverName, port)
+	}
+	return "https://" + listenAddr
 }
 
 func (host *Host) IsRunning() bool {
@@ -152,6 +181,12 @@ func (host *Host) Start() error {
 	if err != nil {
 		host.lastRunErr = fmt.Errorf("监听内置后端 %s 失败: %w", host.listenAddr, err)
 		return host.lastRunErr
+	}
+	if host.tlsCertificate != nil {
+		listener = tls.NewListener(listener, &tls.Config{
+			Certificates: []tls.Certificate{*host.tlsCertificate},
+			MinVersion:   tls.VersionTLS12,
+		})
 	}
 	host.listenAddr = listener.Addr().String()
 	host.httpServer = httpServer
@@ -202,7 +237,7 @@ func (host *Host) HealthCheck(ctx context.Context) error {
 	}
 	client := host.healthHTTP
 	if client == nil {
-		client = newLoopbackHTTPClient()
+		client = newLoopbackHTTPClient(host.tlsCertificate)
 	}
 	response, err := client.Do(request)
 	if err != nil {
@@ -245,19 +280,34 @@ func (host *Host) InProcessHealthCheck() error {
 	return nil
 }
 
-func newLoopbackHTTPClient() *http.Client {
+func newLoopbackHTTPClient(certificate *tls.Certificate) *http.Client {
+	transport := &http.Transport{
+		Proxy: nil,
+		DialContext: (&net.Dialer{
+			Timeout:   1 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2:   false,
+		MaxIdleConns:        1,
+		MaxIdleConnsPerHost: 1,
+		IdleConnTimeout:     30 * time.Second,
+	}
+	if certificate != nil {
+		roots := x509.NewCertPool()
+		for _, rawCertificate := range certificate.Certificate[1:] {
+			parsed, err := x509.ParseCertificate(rawCertificate)
+			if err == nil {
+				roots.AddCert(parsed)
+			}
+		}
+		transport.TLSClientConfig = &tls.Config{
+			MinVersion: tls.VersionTLS12,
+			RootCAs:    roots,
+			ServerName: "localhost",
+		}
+	}
 	return &http.Client{
-		Transport: &http.Transport{
-			Proxy: nil,
-			DialContext: (&net.Dialer{
-				Timeout:   1 * time.Second,
-				KeepAlive: 30 * time.Second,
-			}).DialContext,
-			ForceAttemptHTTP2:   false,
-			MaxIdleConns:        1,
-			MaxIdleConnsPerHost: 1,
-			IdleConnTimeout:     30 * time.Second,
-		},
+		Transport: transport,
 	}
 }
 
@@ -276,8 +326,20 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 		SystemSettingService: &serverSystemSettings{configs: host.configs},
 		HTTPClient:           netproxy.NewHTTPClient(30000 * time.Second),
 	}
+	fallbackForward := upstream.FallbackForwardAction(
+		routeDeps,
+		upstream.CompatRouteConfig{Name: "upstream_fallback"},
+		upstream.DefaultCursorUpstreamBaseURL,
+	)
+	localAIAction := server.HTTPHandlerAction(agentModule.AiHandler)
+	aiServiceAction := func(ctx *server.Context) error {
+		if ctx != nil && ctx.Request != nil && ctx.Request.URL != nil && agentModule.HandlesAIPath(ctx.Request.URL.Path) {
+			return localAIAction(ctx)
+		}
+		return fallbackForward(ctx)
+	}
 
-	host.mux = server.New(
+	host.mux = withLocalBackendCORS(server.New(
 		server.Use(
 			server.Recover(),
 			server.ServerContext(),
@@ -427,19 +489,11 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 				StatusCode: http.StatusOK,
 			})),
 		),
-		server.POST("/oauth/token",
-			server.Name("oauth_token"),
+		server.GET("/auth/cursor_dev_session_token",
+			server.Name("auth_cursor_dev_session_token"),
 			server.HTTP(),
-			server.Local(upstream.MockOAuthAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "oauth_token",
-				StatusCode: http.StatusOK,
-			})),
-		),
-		server.POST("/aiserver.v1.AuthService/GetEmail",
-			server.Name("auth_service_get_email"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockAuthEmailAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "auth_service_get_email",
+			server.Local(upstream.MockDevSessionTokenAction(routeDeps, upstream.CompatRouteConfig{
+				Name:       "auth_cursor_dev_session_token",
 				StatusCode: http.StatusOK,
 			})),
 		),
@@ -476,17 +530,14 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 		server.Any("/aiserver.v1.AiService/*",
 			server.Name("ai_service"),
 			server.HTTP(),
-			server.Local(server.HTTPHandlerAction(agentModule.AiHandler)),
+			server.Local(aiServiceAction),
 		),
 		tabServerProcedure("/aiserver.v1.CppService/AvailableModels", "cpp_available_models", server.ConnectUnary(), routeDeps),
 		tabServerProcedure("/aiserver.v1.CppService/RecordCppFate", "cpp_record_cpp_fate", server.ConnectUnary(), routeDeps),
 		server.Any("/aiserver.v1.CppService/*",
 			server.Name("cpp_service"),
 			server.HTTP(),
-			server.Local(func(ctx *server.Context) error {
-				http.NotFound(ctx.Writer, ctx.Request)
-				return nil
-			}),
+			server.Local(fallbackForward),
 		),
 		tabServerProcedure("/aiserver.v1.FileSyncService/FSSyncFile", "file_sync_sync_file", server.ConnectUnary(), routeDeps),
 		tabServerProcedure("/aiserver.v1.FileSyncService/FSIsEnabledForUser", "file_sync_is_enabled_for_user", server.ConnectUnary(), routeDeps),
@@ -495,10 +546,7 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 		server.Any("/aiserver.v1.FileSyncService/*",
 			server.Name("file_sync"),
 			server.HTTP(),
-			server.Local(func(ctx *server.Context) error {
-				http.NotFound(ctx.Writer, ctx.Request)
-				return nil
-			}),
+			server.Local(fallbackForward),
 		),
 		server.POST("/aiserver.v1.DashboardService/GetTokenUsage",
 			server.Name("dashboard_token_usage"),
@@ -530,21 +578,6 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 				MockBuilder:   upstream.DashboardTeamsMockBuilder,
 			})),
 		),
-		server.POST("/aiserver.v1.DashboardService/GetManagedSkills",
-			server.Name("dashboard_get_managed_skills"),
-			server.ConnectUnary(),
-			server.Local(cursorControlPlaneAction(
-				host.controlPlaneAuth,
-				routeDeps,
-				"dashboard_get_managed_skills",
-				upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-					Name:          "dashboard_get_managed_skills",
-					StatusCode:    http.StatusOK,
-					MockProtoType: "aiserver.v1.GetManagedSkillsResponse",
-					MockBuilder:   upstream.DashboardManagedSkillsMockBuilder,
-				}),
-			)),
-		),
 		server.POST("/aiserver.v1.DashboardService/GetTeamAdminSettingsOrEmptyIfNotInTeam",
 			server.Name("dashboard_get_team_admin_settings_or_empty"),
 			server.ConnectUnary(),
@@ -563,76 +596,6 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 				StatusCode:    http.StatusOK,
 				MockProtoType: "aiserver.v1.GetTeamReposResponse",
 				MockBuilder:   upstream.EmptyMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/ListMarketplaces",
-			server.Name("dashboard_list_marketplaces"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_list_marketplaces",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.ListMarketplacesResponse",
-				MockBuilder:   upstream.EmptyMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/GetGlobalCommands",
-			server.Name("dashboard_get_global_commands"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_get_global_commands",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.GetGlobalCommandsResponse",
-				MockBuilder:   upstream.EmptyMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/GetEffectiveUserPlugins",
-			server.Name("dashboard_get_effective_user_plugins"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_get_effective_user_plugins",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.GetEffectiveUserPluginsResponse",
-				MockBuilder:   upstream.EmptyMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/RegisterMarketplaceAndPlugins",
-			server.Name("dashboard_register_marketplace_and_plugins"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_register_marketplace_and_plugins",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.RegisterMarketplaceAndPluginsResponse",
-				MockBuilder:   upstream.EmptyMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/GetCliDownloadUrl",
-			server.Name("dashboard_get_cli_download_url"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_get_cli_download_url",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.GetCliDownloadUrlResponse",
-				MockBuilder:   upstream.EmptyMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/GetMe",
-			server.Name("dashboard_get_me"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_get_me",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.GetMeResponse",
-				MockBuilder:   upstream.DashboardGetMeMockBuilder,
-			})),
-		),
-		server.POST("/aiserver.v1.DashboardService/GetUserPrivacyMode",
-			server.Name("dashboard_user_privacy_mode"),
-			server.ConnectUnary(),
-			server.Local(upstream.MockProtoAction(routeDeps, upstream.CompatRouteConfig{
-				Name:          "dashboard_user_privacy_mode",
-				StatusCode:    http.StatusOK,
-				MockProtoType: "aiserver.v1.GetUserPrivacyModeResponse",
-				MockBuilder:   upstream.DashboardUserPrivacyModeMockBuilder,
 			})),
 		),
 		server.POST("/aiserver.v1.DashboardService/GetPlanInfo",
@@ -665,102 +628,34 @@ func (host *Host) rebuildLocked(cfg serverconfig.Config) error {
 				MockBuilder:   upstream.DashboardIsOnNewPricingMockBuilder,
 			})),
 		),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/AddMarketplace", "dashboard_add_marketplace", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/AddMcpServersFromPlugin", "dashboard_add_mcp_servers_from_plugin", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/BatchGetPluginMcpConfig", "dashboard_batch_get_plugin_mcp_config", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/GetAvailableMcpServers", "dashboard_get_available_mcp_servers", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/GetEffectiveUserPlugins", "dashboard_get_effective_user_plugins", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/GetPlugin", "dashboard_get_plugin", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/GetPluginMcpConfig", "dashboard_get_plugin_mcp_config", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/InstallUserPlugin", "dashboard_install_user_plugin", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/ListMarketplacePlugins", "dashboard_list_marketplace_plugins", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/ListMarketplaces", "dashboard_list_marketplaces", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/ListUserPluginInstalls", "dashboard_list_user_plugin_installs", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/RefreshMarketplace", "dashboard_refresh_marketplace", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/RegisterMarketplaceAndPlugins", "dashboard_register_marketplace_and_plugins", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/RemoveMarketplace", "dashboard_remove_marketplace", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/ResolvePluginsByRef", "dashboard_resolve_plugins_by_ref", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/UninstallUserPlugin", "dashboard_uninstall_user_plugin", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.DashboardService/UpdateUserPluginInstall", "dashboard_update_user_plugin_install", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		cursorControlPlaneProcedure("/aiserver.v1.MCPRegistryService/GetKnownServers", "mcp_registry_get_known_servers", server.ConnectUnary(), host.controlPlaneAuth, routeDeps),
-		server.Any("/aiserver.v1.DashboardService/*",
-			server.Name("dashboard"),
+		server.Any("/*",
+			server.Name("upstream_fallback"),
 			server.HTTP(),
-			server.Local(func(ctx *server.Context) error {
-				http.NotFound(ctx.Writer, ctx.Request)
-				return nil
-			}),
+			server.Local(fallbackForward),
 		),
-		server.Any("/aiserver.v1.NetworkService/*",
-			server.Name("network_service"),
-			server.HTTP(),
-			server.Local(func(ctx *server.Context) error {
-				http.NotFound(ctx.Writer, ctx.Request)
-				return nil
-			}),
-		),
-		server.Any("/aiserver.v1.InAppAdService/*",
-			server.Name("in_app_ad"),
-			server.HTTP(),
-			server.Local(func(ctx *server.Context) error {
-				http.NotFound(ctx.Writer, ctx.Request)
-				return nil
-			}),
-		),
-		server.GET("/auth/full_stripe_profile",
-			server.Name("auth_full_stripe_profile"),
-			server.HTTP(),
-			server.Local(upstream.MockAuthFullStripeProfileAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "auth_full_stripe_profile",
-				StatusCode: http.StatusOK,
-			})),
-		),
-		server.GET("/auth/stripe_profile",
-			server.Name("auth_stripe_profile"),
-			server.HTTP(),
-			server.Local(upstream.MockAuthStripeProfileAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "auth_stripe_profile",
-				StatusCode: http.StatusOK,
-			})),
-		),
-		server.GET("/auth/has_valid_payment_method",
-			server.Name("auth_has_valid_payment_method"),
-			server.HTTP(),
-			server.Local(upstream.MockJSONAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "auth_has_valid_payment_method",
-				StatusCode: http.StatusOK,
-				JSONBody: map[string]any{
-					"hasValidPaymentMethod": true,
-				},
-			})),
-		),
-		server.Any("/auth/poll",
-			server.Name("auth_poll"),
-			server.HTTP(),
-			server.Local(upstream.MockAuthPollAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "auth_poll",
-				StatusCode: http.StatusOK,
-			})),
-		),
-		server.POST("/auth/logout",
-			server.Name("auth_logout"),
-			server.HTTP(),
-			server.Local(upstream.FixedStatusAction(routeDeps, upstream.CompatRouteConfig{
-				Name:       "auth_logout",
-				StatusCode: http.StatusNoContent,
-			})),
-		),
-		server.Any("/auth/*",
-			server.Name("auth_proxy"),
-			server.HTTP(),
-			server.Local(func(ctx *server.Context) error {
-				http.NotFound(ctx.Writer, ctx.Request)
-				return nil
-			}),
-		),
-	)
+	))
 
 	return nil
+}
+
+func withLocalBackendCORS(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		writer.Header().Set("Access-Control-Allow-Origin", "*")
+		writer.Header().Del("Access-Control-Allow-Credentials")
+		if strings.EqualFold(request.Method, http.MethodOptions) && strings.TrimSpace(request.Header.Get("Access-Control-Request-Method")) != "" {
+			writer.Header().Set("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS")
+			requestedHeaders := strings.TrimSpace(request.Header.Get("Access-Control-Request-Headers"))
+			if requestedHeaders == "" {
+				requestedHeaders = "authorization,content-type,x-cursor-client-type"
+			}
+			writer.Header().Set("Access-Control-Allow-Headers", requestedHeaders)
+			writer.Header().Set("Access-Control-Max-Age", "86400")
+			writer.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(writer, request)
+	})
 }
 
 func repositoryServiceProcedure(pattern string, name string, protocol server.RouteOption, module *forwarder.Module) server.Option {
@@ -801,46 +696,6 @@ func tabServerProcedure(pattern string, name string, protocol server.RouteOption
 		protocol,
 		server.Local(action),
 	)
-}
-
-func cursorControlPlaneProcedure(
-	pattern string,
-	name string,
-	protocol server.RouteOption,
-	authorizationProvider upstream.AuthorizationProvider,
-	deps upstream.Dependencies,
-) server.Option {
-	notFound := func(ctx *server.Context) error {
-		http.NotFound(ctx.Writer, ctx.Request)
-		return nil
-	}
-	return server.POST(pattern,
-		server.Name(name),
-		protocol,
-		server.Local(cursorControlPlaneAction(authorizationProvider, deps, name, notFound)),
-	)
-}
-
-func cursorControlPlaneAction(
-	authorizationProvider upstream.AuthorizationProvider,
-	deps upstream.Dependencies,
-	name string,
-	fallback server.HandlerFunc,
-) server.HandlerFunc {
-	forward := upstream.AuthenticatedForwardAction(deps, upstream.CompatRouteConfig{Name: name}, authorizationProvider)
-	return func(ctx *server.Context) error {
-		if authorizationProvider == nil || !authorizationProvider.SignedIn() {
-			return fallback(ctx)
-		}
-		if ctx == nil || ctx.Request == nil || ctx.Request.URL == nil {
-			return fmt.Errorf("Cursor 控制面请求上下文无效")
-		}
-		targetURL := *ctx.Request.URL
-		targetURL.Scheme = "https"
-		targetURL.Host = "api2.cursor.sh:443"
-		ctx.UpstreamURL = &targetURL
-		return forward(ctx)
-	}
 }
 
 type serverSystemSettings struct {

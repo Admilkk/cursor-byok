@@ -19,87 +19,119 @@ type usageLookupRecord struct {
 	CreatedAt    time.Time
 }
 
+type aiHandler struct {
+	mux   *http.ServeMux
+	paths map[string]struct{}
+}
+
+func newAIHandlerMux() *aiHandler {
+	return &aiHandler{
+		mux:   http.NewServeMux(),
+		paths: make(map[string]struct{}),
+	}
+}
+
+func (handler *aiHandler) Handle(pattern string, target http.Handler) {
+	handler.paths[pattern] = struct{}{}
+	handler.mux.Handle(pattern, target)
+}
+
+func (handler *aiHandler) HandlesPath(path string) bool {
+	if handler == nil {
+		return false
+	}
+	_, ok := handler.paths[path]
+	return ok
+}
+
+func (handler *aiHandler) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	if handler == nil || handler.mux == nil {
+		http.NotFound(writer, request)
+		return
+	}
+	handler.mux.ServeHTTP(writer, request)
+}
+
 const (
 	dashboardServiceGetTokenUsageProcedure                  = "/aiserver.v1.DashboardService/GetTokenUsage"
 	dashboardServiceGetGlassEarlyPreviewEnrollmentProcedure = "/aiserver.v1.DashboardService/GetGlassEarlyPreviewEnrollment"
 )
 
-func newAIHandler(service *Service) http.Handler {
-	mux := http.NewServeMux()
-	mux.Handle(
+func newAIHandler(service *Service) *aiHandler {
+	handler := newAIHandlerMux()
+	handler.Handle(
 		dashboardServiceGetTokenUsageProcedure,
 		connect.NewUnaryHandler(dashboardServiceGetTokenUsageProcedure, service.GetTokenUsage),
 	)
-	mux.Handle(
+	handler.Handle(
 		dashboardServiceGetGlassEarlyPreviewEnrollmentProcedure,
 		connect.NewUnaryHandler(dashboardServiceGetGlassEarlyPreviewEnrollmentProcedure, service.GetGlassEarlyPreviewEnrollment),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceCountTokensProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceCountTokensProcedure, service.CountTokens),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceGetThoughtAnnotationProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceGetThoughtAnnotationProcedure, service.GetThoughtAnnotation),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceWriteGitCommitMessageProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceWriteGitCommitMessageProcedure, service.WriteGitCommitMessage),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceCreateExperimentalIndexProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceCreateExperimentalIndexProcedure, service.CreateExperimentalIndex),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceListExperimentalIndexFilesProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceListExperimentalIndexFilesProcedure, service.ListExperimentalIndexFiles),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceListenExperimentalIndexProcedure,
 		connect.NewServerStreamHandler(aiserverv1connect.AiServiceListenExperimentalIndexProcedure, service.ListenExperimentalIndex),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceRegisterFileToIndexProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceRegisterFileToIndexProcedure, service.RegisterFileToIndex),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceSetupIndexDependenciesProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceSetupIndexDependenciesProcedure, service.SetupIndexDependencies),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceComputeIndexTopoSortProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceComputeIndexTopoSortProcedure, service.ComputeIndexTopoSort),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceDocumentationQueryProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceDocumentationQueryProcedure, service.DocumentationQuery),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceAvailableDocsProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceAvailableDocsProcedure, service.AvailableDocs),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceKnowledgeBaseAddProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceKnowledgeBaseAddProcedure, service.KnowledgeBaseAdd),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceKnowledgeBaseListProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceKnowledgeBaseListProcedure, service.KnowledgeBaseList),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceKnowledgeBaseRemoveProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceKnowledgeBaseRemoveProcedure, service.KnowledgeBaseRemove),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceKnowledgeBaseUpdateProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceKnowledgeBaseUpdateProcedure, service.KnowledgeBaseUpdate),
 	)
-	mux.Handle(
+	handler.Handle(
 		aiserverv1connect.AiServiceFetchRelevantKnowledgeForConversationProcedure,
 		connect.NewUnaryHandler(aiserverv1connect.AiServiceFetchRelevantKnowledgeForConversationProcedure, service.FetchRelevantKnowledgeForConversation),
 	)
-	mux.Handle("/", http.NotFoundHandler())
-	return mux
+	return handler
 }
 
 func (service *Service) GetThoughtAnnotation(_ context.Context, req *connect.Request[aiserverv1.GetThoughtAnnotationRequest]) (*connect.Response[aiserverv1.GetThoughtAnnotationResponse], error) {

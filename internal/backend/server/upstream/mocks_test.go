@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"cursor/gen/agentv1"
+	"cursor/gen/aiserverv1"
 	legacyruntime "cursor/internal/runtime"
 
 	"google.golang.org/protobuf/proto"
@@ -51,6 +52,26 @@ func TestEncodeCLIModelsUsesAgentModelDetailsWireFormat(t *testing.T) {
 	}
 	if credentials := model.GetApiKeyCredentials(); credentials == nil || credentials.GetApiKey() != "provider-secret" || credentials.GetBaseUrl() != "https://provider.example/v1" {
 		t.Fatalf("decoded relay credentials: %#v", credentials)
+	}
+}
+
+func TestBuildServerConfigEnablesDevUserBackendCommands(t *testing.T) {
+	payload, err := buildServerConfigPayload(nil)
+	if err != nil {
+		t.Fatalf("build server config: %v", err)
+	}
+
+	encoded, err := encodeMockProto("aiserver.v1.GetServerConfigResponse", payload)
+	if err != nil {
+		t.Fatalf("encode server config: %v", err)
+	}
+
+	response := &aiserverv1.GetServerConfigResponse{}
+	if err := proto.Unmarshal(encoded, response); err != nil {
+		t.Fatalf("decode server config: %v", err)
+	}
+	if !response.GetIsDevDoNotUseForSecretThingsBecauseCanBeSpoofedByUsers() {
+		t.Fatal("expected server config to enable dev-user backend commands")
 	}
 }
 

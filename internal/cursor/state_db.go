@@ -60,6 +60,23 @@ func InjectCursorUserInfo(email, token string) error {
 	return nil
 }
 
+// DisableCursorStatsigGates preserves the local-mode feature gates without
+// injecting or replacing Cursor account state.
+func DisableCursorStatsigGates() error {
+	stateDBPath, err := resolveCursorStateDBPath()
+	if err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(stateDBPath), 0o755); err != nil {
+		return fmt.Errorf("创建 Cursor 状态目录失败: %w", err)
+	}
+	if err := disableCursorStatsigGatesInDB(stateDBPath); err != nil {
+		return fmt.Errorf("同步 Cursor Statsig gates 失败 path=%s: %w", stateDBPath, err)
+	}
+	logger.Infof("disableCursorStatsigGates synced path=%s gates=%s", stateDBPath, strings.Join(cursorStateDisabledStatsigGates, ","))
+	return nil
+}
+
 func buildCursorAuthStateValues(email, token string) map[string]string {
 	email = strings.TrimSpace(email)
 	token = strings.TrimSpace(token)
@@ -124,6 +141,44 @@ func syncCursorAuthStateDB(path string, values map[string]string) error {
 		return err
 	}
 
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	committed = true
+	return nil
+}
+
+func disableCursorStatsigGatesInDB(path string) error {
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	db.SetMaxOpenConns(1)
+	db.SetMaxIdleConns(1)
+
+	ctx := context.Background()
+	if _, err := db.ExecContext(ctx, fmt.Sprintf("PRAGMA busy_timeout = %d", cursorStateSQLiteBusyTimeoutMS)); err != nil {
+		return err
+	}
+	if _, err := db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS ItemTable (key TEXT UNIQUE ON CONFLICT REPLACE, value BLOB)"); err != nil {
+		return err
+	}
+
+	tx, err := db.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			_ = tx.Rollback()
+		}
+	}()
+
+	if err := disableCursorStatsigGates(ctx, tx); err != nil {
+		return err
+	}
 	if err := tx.Commit(); err != nil {
 		return err
 	}

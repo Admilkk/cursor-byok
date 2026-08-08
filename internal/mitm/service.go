@@ -184,6 +184,19 @@ func NewProxyServer(addr, baseURL, _ string, _ string, certManager *certs.Manage
 		return nil, err
 	}
 
+	tlsConfig := &tls.Config{MinVersion: tls.VersionTLS12}
+	if certManager != nil {
+		caCertificate, err := certManager.CATLSCertificate()
+		if err != nil {
+			return nil, fmt.Errorf("load proxy backend CA: %w", err)
+		}
+		roots := x509.NewCertPool()
+		if caCertificate.Leaf != nil {
+			roots.AddCert(caCertificate.Leaf)
+		}
+		tlsConfig.RootCAs = roots
+	}
+
 	s := &ProxyServer{
 		addr:         addr,
 		baseURL:      normalizedBaseURL,
@@ -198,6 +211,7 @@ func NewProxyServer(addr, baseURL, _ string, _ string, certManager *certs.Manage
 				TLSHandshakeTimeout:   10 * time.Second,
 				ExpectContinueTimeout: 1 * time.Second,
 				ResponseHeaderTimeout: 60 * time.Second,
+				TLSClientConfig:       tlsConfig,
 			},
 		},
 	}

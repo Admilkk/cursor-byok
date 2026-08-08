@@ -32,3 +32,11 @@ func NewModule(historyRoot string, channelService modeladapter.ChannelResolver) 
 		UploadServiceHandler:     newUploadServiceHandler(service),
 	}
 }
+
+func (module *Module) HandlesAIPath(path string) bool {
+	if module == nil || module.AiHandler == nil {
+		return false
+	}
+	handler, ok := module.AiHandler.(interface{ HandlesPath(string) bool })
+	return ok && handler.HandlesPath(path)
+}

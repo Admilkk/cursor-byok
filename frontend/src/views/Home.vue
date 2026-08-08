@@ -2,7 +2,6 @@
 import Button from "@/components/ui/Button.vue";
 import Card from "@/components/ui/Card.vue";
 import HomeMetricsCard from "@/components/HomeMetricsCard.vue";
-import CursorAccountCard from "@/components/CursorAccountCard.vue";
 import { useMessage } from "@/composables/useMessage";
 import { getAdRuntime } from "@/services/clientApi";
 import {
@@ -173,8 +172,6 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </Card>
-
-    <CursorAccountCard />
 
     <Card class="">
       <div class="flex items-center justify-between gap-4">

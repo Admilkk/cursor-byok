@@ -14,11 +14,12 @@ import (
 type CompatRouteConfig struct {
 	Name          string
 	StatusCode    int
-	JSONBody      map[string]any
 	MockProtoType string
 	MockBuilder   func(*RequestContext) (map[string]any, error)
 	ConsoleLog    bool
 }
+
+const DefaultCursorUpstreamBaseURL = "https://api2.cursor.sh:443"
 
 func ForwardAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
 	return func(ctx *server.Context) error {
@@ -30,31 +31,27 @@ func ForwardAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc 
 	}
 }
 
-// AuthenticatedForwardAction forwards a Cursor control-plane request with the
-// independent desktop account after the local-mode identity rewrite has run.
-func AuthenticatedForwardAction(deps Dependencies, cfg CompatRouteConfig, authorizationProvider AuthorizationProvider) server.HandlerFunc {
+// FallbackForwardAction preserves an MITM request's original upstream URL. A
+// native request has no original host metadata, so it is resolved against the
+// configured default upstream while retaining its path and query string.
+func FallbackForwardAction(deps Dependencies, cfg CompatRouteConfig, defaultBaseURL string) server.HandlerFunc {
+	forward := ForwardAction(deps, cfg)
 	return func(ctx *server.Context) error {
-		reqCtx, _, err := newCompatRouteObjects(ctx, deps, cfg)
-		if err != nil {
-			return err
+		if ctx == nil || ctx.Request == nil || ctx.Request.URL == nil {
+			return fmt.Errorf("fallback upstream request context is invalid")
 		}
-		if reqCtx == nil || reqCtx.Request == nil {
-			return fmt.Errorf("Cursor 控制面请求上下文无效")
+		if ctx.UpstreamURL == nil {
+			baseURL, err := ParseAndValidateRawURL(defaultBaseURL)
+			if err != nil {
+				return fmt.Errorf("parse fallback upstream URL: %w", err)
+			}
+			targetURL := *ctx.Request.URL
+			targetURL.Scheme = baseURL.Scheme
+			targetURL.Host = baseURL.Host
+			targetURL.User = baseURL.User
+			ctx.UpstreamURL = &targetURL
 		}
-		if authorizationProvider == nil {
-			return fmt.Errorf("Cursor 账号服务未初始化")
-		}
-		authorization, err := authorizationProvider.Authorization(reqCtx.Request.Context())
-		if err != nil {
-			return err
-		}
-		_, err = ForwardToUpstream(reqCtx, ForwardOptions{
-			PatchHeaders: func(headers http.Header) {
-				headers.Set("Authorization", authorization)
-				headers.Set("x-cursor-checksum", BuildCursorChecksum(authorization))
-			},
-		})
-		return err
+		return forward(ctx)
 	}
 }
 
@@ -68,63 +65,13 @@ func FixedStatusAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerF
 	}
 }
 
-func MockJSONAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
+func MockDevSessionTokenAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
 	return func(ctx *server.Context) error {
 		reqCtx, route, err := newCompatRouteObjects(ctx, deps, cfg)
 		if err != nil {
 			return err
 		}
-		return handleMockJSON(reqCtx, route)
-	}
-}
-
-func MockOAuthAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
-	return func(ctx *server.Context) error {
-		reqCtx, route, err := newCompatRouteObjects(ctx, deps, cfg)
-		if err != nil {
-			return err
-		}
-		return handleMockOAuth(reqCtx, route)
-	}
-}
-
-func MockAuthFullStripeProfileAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
-	return func(ctx *server.Context) error {
-		reqCtx, route, err := newCompatRouteObjects(ctx, deps, cfg)
-		if err != nil {
-			return err
-		}
-		return handleMockAuthFullStripeProfile(reqCtx, route)
-	}
-}
-
-func MockAuthStripeProfileAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
-	return func(ctx *server.Context) error {
-		reqCtx, route, err := newCompatRouteObjects(ctx, deps, cfg)
-		if err != nil {
-			return err
-		}
-		return handleMockAuthStripeProfile(reqCtx, route)
-	}
-}
-
-func MockAuthPollAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
-	return func(ctx *server.Context) error {
-		reqCtx, route, err := newCompatRouteObjects(ctx, deps, cfg)
-		if err != nil {
-			return err
-		}
-		return handleMockAuthPoll(reqCtx, route)
-	}
-}
-
-func MockAuthEmailAction(deps Dependencies, cfg CompatRouteConfig) server.HandlerFunc {
-	return func(ctx *server.Context) error {
-		reqCtx, route, err := newCompatRouteObjects(ctx, deps, cfg)
-		if err != nil {
-			return err
-		}
-		return handleMockAuthEmail(reqCtx, route)
+		return handleMockDevSessionToken(reqCtx, route)
 	}
 }
 
@@ -169,7 +116,6 @@ func newCompatRouteObjects(ctx *server.Context, deps Dependencies, cfg CompatRou
 		Name:               cfg.Name,
 		Pattern:            ctx.Request.URL.Path,
 		StatusCode:         cfg.StatusCode,
-		JSONBody:           cfg.JSONBody,
 		MockProtoType:      cfg.MockProtoType,
 		MockPayloadBuilder: cfg.MockBuilder,
 		ConsoleLog:         cfg.ConsoleLog,
@@ -221,10 +167,6 @@ func DashboardTeamsMockBuilder(reqCtx *RequestContext) (map[string]any, error) {
 	return buildDashboardTeamsPayload(reqCtx)
 }
 
-func DashboardManagedSkillsMockBuilder(reqCtx *RequestContext) (map[string]any, error) {
-	return buildDashboardManagedSkillsPayload(reqCtx)
-}
-
 // EmptyMockBuilder возвращает пустой proto-ответ для ручек, где клиенту
 // достаточно успешного "пусто": нет team-настроек, нет репозиториев,
 // нет маркетплейсов/плагинов/команд, телеметрия принята без обработки.
@@ -235,14 +177,6 @@ func EmptyMockBuilder(reqCtx *RequestContext) (map[string]any, error) {
 // SubmitLogsMockBuilder подтверждает приём логов телеметрии без обработки.
 func SubmitLogsMockBuilder(reqCtx *RequestContext) (map[string]any, error) {
 	return map[string]any{"success": true}, nil
-}
-
-func DashboardGetMeMockBuilder(reqCtx *RequestContext) (map[string]any, error) {
-	return buildDashboardGetMePayload(reqCtx)
-}
-
-func DashboardUserPrivacyModeMockBuilder(reqCtx *RequestContext) (map[string]any, error) {
-	return buildDashboardUserPrivacyModePayload(reqCtx)
 }
 
 func DashboardPlanInfoMockBuilder(reqCtx *RequestContext) (map[string]any, error) {

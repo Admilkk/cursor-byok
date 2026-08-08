@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	DefaultBackendListenAddr                = "127.0.0.1:18090"
+	DefaultBackendListenAddr                = "127.0.0.1:8000"
 	DefaultProxyListenAddr                  = "127.0.0.1:18080"
 	DefaultFrontendBaseURL                  = "http://127.0.0.1"
 	DefaultProviderStreamIdleTimeoutSeconds = 240

@@ -24,9 +24,7 @@ const (
 	// файловых инструментов падают с "[unimplemented] HTTP 404".
 	localPathEncryptionKey = "6f6e63652d6c6f63616c2d706174682d656e6372797074696f6e2d6b6579"
 
-	localUltraMembershipType       = "ultra"
 	localUltraPaymentID            = "local_ultra"
-	localUltraSubscriptionStatus   = "active"
 	localUltraPlanIncludedCents    = 20000
 	localUltraDashboardUserID      = 1
 	localUltraBillingCycleDuration = 30 * 24 * time.Hour
@@ -431,7 +429,8 @@ func buildServerTimePayload(*RequestContext) (map[string]any, error) {
 
 func buildServerConfigPayload(*RequestContext) (map[string]any, error) {
 	return map[string]any{
-		"configVersion":            "local_cli_sandbox_defaults_disabled_v2",
+		"configVersion": "local_cli_sandbox_defaults_disabled_v2",
+		"isDevDoNotUseForSecretThingsBecauseCanBeSpoofedByUsers": true,
 		"http2Config":              "HTTP2_CONFIG_FORCE_ALL_DISABLED",
 		"cliSandboxDefaultEnabled": true,
 		"indexingConfig": map[string]any{
@@ -547,26 +546,29 @@ func buildFirstWindowStatsigDecisionPayload(*RequestContext) (map[string]any, er
 	}, nil
 }
 
-func buildDashboardCurrentPeriodUsagePayload(*RequestContext) (map[string]any, error) {
+func buildDashboardCurrentPeriodUsagePayload(reqCtx *RequestContext) (map[string]any, error) {
+	plan := localDevPlanFromRequest(reqCtx)
+	planName, includedSpend := localDevPlanDetails(plan)
 	billingCycleStart := time.Now().Add(-localUltraBillingCycleDuration).UnixMilli()
 	billingCycleEnd := time.Now().Add(10 * 365 * 24 * time.Hour).UnixMilli()
+	displayMessage := planName + " active"
 	return map[string]any{
-		"autoModelSelectedDisplayMessage":  "Ultra plan active",
+		"autoModelSelectedDisplayMessage":  displayMessage,
 		"billingCycleEnd":                  billingCycleEnd,
 		"billingCycleStart":                billingCycleStart,
-		"displayMessage":                   "Ultra plan active",
+		"displayMessage":                   displayMessage,
 		"displayThreshold":                 99999999,
 		"enabled":                          true,
-		"namedModelSelectedDisplayMessage": "Ultra plan active",
+		"namedModelSelectedDisplayMessage": displayMessage,
 		"planUsage": map[string]any{
 			"apiPercentUsed":   0,
 			"apiSpend":         0,
 			"autoPercentUsed":  0,
 			"autoSpend":        0,
-			"bonusTooltip":     "Ultra local account mock is active.",
-			"includedSpend":    localUltraPlanIncludedCents,
-			"limit":            localUltraPlanIncludedCents,
-			"remaining":        localUltraPlanIncludedCents,
+			"bonusTooltip":     "Local account mock is active.",
+			"includedSpend":    includedSpend,
+			"limit":            includedSpend,
+			"remaining":        includedSpend,
 			"remainingBonus":   false,
 			"totalPercentUsed": 0,
 			"totalSpend":       0,
@@ -577,62 +579,45 @@ func buildDashboardCurrentPeriodUsagePayload(*RequestContext) (map[string]any, e
 	}, nil
 }
 
-func buildDashboardTeamsPayload(*RequestContext) (map[string]any, error) {
+func buildDashboardTeamsPayload(reqCtx *RequestContext) (map[string]any, error) {
+	if claims, ok := localDevClaimsFromRequest(reqCtx); ok && claims.Plan == "enterprise" {
+		return map[string]any{
+			"teams": []map[string]any{{
+				"name":               "Local Enterprise",
+				"id":                 1,
+				"seats":              1,
+				"hasBilling":         true,
+				"subscriptionStatus": localDevSubscriptionActive,
+				"verified":           true,
+				"isEnterprise":       true,
+				"membershipType":     "enterprise",
+			}},
+		}, nil
+	}
 	return map[string]any{
 		"teams": []map[string]any{},
 	}, nil
 }
 
-func buildDashboardManagedSkillsPayload(*RequestContext) (map[string]any, error) {
-	return map[string]any{
-		"skills": []map[string]any{},
-	}, nil
-}
-
-func buildDashboardGetMePayload(reqCtx *RequestContext) (map[string]any, error) {
-	authID := ""
-	if reqCtx != nil {
-		authID = authIDFromBearer(reqCtx.Headers.Get("authorization"))
+func buildDashboardPlanInfoPayload(reqCtx *RequestContext) (map[string]any, error) {
+	plan := localDevPlanFromRequest(reqCtx)
+	planName, includedAmountCents := localDevPlanDetails(plan)
+	price := "$200/mo"
+	switch plan {
+	case "free":
+		price = "$0/mo"
+	case "pro":
+		price = "$20/mo"
+	case "pro_plus":
+		price = "$60/mo"
+	case "enterprise":
+		price = "Custom"
 	}
-	if authID == "" {
-		authID = authIDFromJWT(legacyruntime.InjectAuthToken)
-	}
-	if authID == "" {
-		authID = localUltraPaymentID
-	}
-
-	return map[string]any{
-		"authId":            authID,
-		"userId":            localUltraDashboardUserID,
-		"email":             legacyruntime.InjectAccountEmail,
-		"firstName":         "Cursor",
-		"lastName":          "Local",
-		"createdAt":         time.Now().UTC().Format(time.RFC3339),
-		"isEnterpriseUser":  false,
-		"teamName":          "",
-		"emailDomainType":   "personal",
-		"country":           "US",
-		"profilePictureUrl": "",
-	}, nil
-}
-
-func buildDashboardUserPrivacyModePayload(*RequestContext) (map[string]any, error) {
-	return map[string]any{
-		"privacyMode":                          "PRIVACY_MODE_NO_STORAGE",
-		"hoursRemainingInGracePeriod":          0,
-		"isEnforcedByTeam":                     false,
-		"isNotMigratedToServerSourceOfTruth":   false,
-		"partnerDataShare":                     false,
-		"hasAcknowledgedGracePeriodDisclaimer": true,
-	}, nil
-}
-
-func buildDashboardPlanInfoPayload(*RequestContext) (map[string]any, error) {
 	return map[string]any{
 		"planInfo": map[string]any{
-			"planName":            "Ultra Plan",
-			"includedAmountCents": localUltraPlanIncludedCents,
-			"price":               "$200/mo",
+			"planName":            planName,
+			"includedAmountCents": includedAmountCents,
+			"price":               price,
 			"billingCycleEnd":     time.Now().Add(10 * 365 * 24 * time.Hour).UnixMilli(),
 		},
 	}, nil
