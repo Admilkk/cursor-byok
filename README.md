@@ -1,6 +1,7 @@
 <div align="center">
 
 # cursor-byok
+cursor-byok is a local implementation of Cursor's server side.
 
 [User Guide](https://docs.leokun.cn) · [Latest Release](https://github.com/leookun/cursor-byok/releases/latest) · [Report an Issue](https://github.com/leookun/cursor-byok/issues) · [简体中文](./README-CN.md)
 
