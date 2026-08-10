@@ -95,6 +95,14 @@ cursor-byok 在本机负责协议适配、模型请求转发、工具调用衔�
 
 欢迎提交 Issue 和 Pull Request。开发环境、构建命令、项目结构及提交规范请阅读 [贡献指南](./CONTRIBUTING.md)。
 
+
+## 贡献者名单
+
+<a href="https://github.com/leookun/cursor-byok/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=leookun/cursor-byok" />
+</a>
+
+
 ## 许可证
 
 本项目基于 [MIT License](./LICENSE) 开源。
