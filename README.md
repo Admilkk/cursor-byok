@@ -96,6 +96,15 @@ See the [release roadmap](https://github.com/leookun/cursor-byok/discussions/32)
 
 Issues and pull requests are welcome. See the [Contributing Guide](./CONTRIBUTING_EN.md) for prerequisites, build commands, project structure, and contribution guidelines.
 
+## Contributors
+
+<a href="https://github.com/leookun/cursor-byok/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=leookun/cursor-byok" />
+</a>
+
+
 ## License
 
 This project is open source under the [MIT License](./LICENSE).
+
+
