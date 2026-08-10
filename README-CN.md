@@ -89,7 +89,6 @@ cursor-byok 在本机负责协议适配、模型请求转发、工具调用衔�
 - [Telegram 交流群](https://t.me/cursor_byok)
 - QQ 交流群：`1095916242`、`1094411438`、`1095918002`、`1094419321`
 
-<a href="https://trendshift.io/repositories/39260?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-39260" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/39260" alt="leookun/cursor-byok | Trendshift" width="250" height="55" /></a>
 
 ## 开发与贡献
 
