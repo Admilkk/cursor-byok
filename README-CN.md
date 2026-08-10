@@ -2,6 +2,8 @@
 
 # cursor-byok
 
+cursor-byok 是 Cursor 后端的本地实现。
+
 [使用教程](https://docs.leokun.cn) · [下载最新版](https://github.com/leookun/cursor-byok/releases/latest) · [问题反馈](https://github.com/leookun/cursor-byok/issues) · [English](./README.md)
 
 [![Release](https://img.shields.io/github/v/release/leookun/cursor-byok?style=flat-square)](https://github.com/leookun/cursor-byok/releases/latest)
