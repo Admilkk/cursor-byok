@@ -2,6 +2,9 @@
 
 # cursor-byok
 cursor-byok is a local implementation of Cursor's backend.
+<br>
+<br>
+<a href="https://trendshift.io/repositories/39260?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-39260" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/39260" alt="leookun/cursor-byok | Trendshift" width="250" height="55" /></a>
 
 [User Guide](https://docs.leokun.cn) · [Latest Release](https://github.com/leookun/cursor-byok/releases/latest) · [Report an Issue](https://github.com/leookun/cursor-byok/issues) · [简体中文](./README-CN.md)
 
@@ -9,6 +12,8 @@ cursor-byok is a local implementation of Cursor's backend.
 [![Downloads](https://img.shields.io/github/downloads/leookun/cursor-byok/total?style=flat-square)](https://github.com/leookun/cursor-byok/releases)
 [![License](https://img.shields.io/github/license/leookun/cursor-byok?style=flat-square)](./LICENSE)
 [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey?style=flat-square)](https://github.com/leookun/cursor-byok/releases/latest)
+
+
 
 </div>
 
@@ -85,7 +90,7 @@ See the [release roadmap](https://github.com/leookun/cursor-byok/discussions/32)
 - [Telegram community](https://t.me/cursor_byok)
 - QQ groups: `1095916242`, `1094411438`, `1095918002`, `1094419321`
 
-<a href="https://trendshift.io/repositories/39260?utm_source=repository-badge&amp;utm_medium=badge&amp;utm_campaign=badge-repository-39260" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/repositories/39260" alt="leookun/cursor-byok | Trendshift" width="250" height="55" /></a>
+
 
 ## Development and Contributing
 
