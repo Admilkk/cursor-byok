@@ -3,6 +3,8 @@ package forwarder
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -561,6 +563,7 @@ func (service *Service) decodeInboundIntent(requestID string, message *agentv1.A
 		}
 		intent.ConversationID = conversationID
 		intent.ConversationState = runRequest.GetConversationState()
+		intent.PreFetchedBlobs = runRequest.GetPreFetchedBlobs()
 		intent.UserMessage = extractUserMessage(message)
 		intent.RequestContext = extractRequestContext(message)
 		if service.shouldIgnoreEmptyResumeRunRequest(requestID, runRequest, intent.UserMessage, intent.RequestContext) {
@@ -608,6 +611,7 @@ func (service *Service) decodeInboundIntent(requestID string, message *agentv1.A
 		intent.ConversationID = conversationID
 		intent.SubagentTypeName = strings.TrimSpace(prewarmRequest.GetSubagentTypeName())
 		intent.ConversationState = prewarmRequest.GetConversationState()
+		intent.PreFetchedBlobs = prewarmRequest.GetPreFetchedBlobs()
 		intent.Mode, intent.ModeSource, intent.HasExplicitMode, err = extractPrewarmMode(prewarmRequest)
 		if err != nil {
 			return InboundIntent{}, err
@@ -838,14 +842,22 @@ func (service *Service) handleCancelIntent(intent InboundIntent) error {
 	}
 	hasCheckpoint := checkpointConversationInitialized(stream)
 	if hasCheckpoint {
+		preservedInterruptedOutput, err := service.persistInterruptedProviderOutput(stream)
+		if err != nil {
+			return err
+		}
 		cancelReason := firstNonEmpty(intent.CancelReason, "user aborted")
-		_, err := service.appendConversationEntries(stream, stream.ConversationID, []HistoryEntry{
-			newMetadataEntry(stream.TurnSeq, intent.RequestID, "control", map[string]any{
-				"status":        "canceled",
-				"reason":        cancelReason,
-				"replay_policy": cancelReplayPolicyForReason(cancelReason),
-			}),
+		replayPolicy := cancelReplayPolicyForReason(cancelReason)
+		if preservedInterruptedOutput || checkpointTurnHasReplayActivity(stream) {
+			replayPolicy = cancelReplayPolicyKeepInterrupted
+		}
+		cancelEntry := newMetadataEntry(stream.TurnSeq, intent.RequestID, "control", map[string]any{
+			"status":        "canceled",
+			"reason":        cancelReason,
+			"replay_policy": replayPolicy,
 		})
+		cancelEntry.IdempotencyKey = cancelMetadataIdempotencyKey(stream.TurnSeq, intent.RequestID)
+		_, err = service.appendConversationEntries(stream, stream.ConversationID, []HistoryEntry{cancelEntry})
 		if err != nil {
 			return err
 		}
@@ -871,6 +883,89 @@ func (service *Service) handleCancelIntent(intent InboundIntent) error {
 	stream.mu.Unlock()
 	service.setTurnPhase(stream, TurnPhaseCanceled)
 	return service.broker.Cancel(intent.RequestID, firstNonEmpty(intent.CancelReason, "[canceled] User aborted request"))
+}
+
+func checkpointTurnHasReplayActivity(stream *ActiveStream) bool {
+	if stream == nil {
+		return false
+	}
+	stream.mu.Lock()
+	defer stream.mu.Unlock()
+	if stream.CheckpointConversation == nil {
+		return false
+	}
+	for _, entry := range stream.CheckpointConversation.Entries {
+		if entry.TurnSeq == stream.TurnSeq && isCanceledTurnActivityEntry(entry) {
+			return true
+		}
+	}
+	return false
+}
+
+// persistInterruptedProviderOutput commits the current provider pass before cancellation.
+// The entry key is stable for this provider pass, so repeated cancellation handling is a no-op.
+func (service *Service) persistInterruptedProviderOutput(stream *ActiveStream) (bool, error) {
+	if stream == nil {
+		return false, nil
+	}
+	stream.mu.Lock()
+	turnSeq := stream.TurnSeq
+	requestID := strings.TrimSpace(stream.RequestID)
+	modelCallID := strings.TrimSpace(stream.CurrentModelCallID)
+	providerPass := stream.ProviderPassCount
+	text := stream.ProviderAccumulatedText
+	reasoning := stream.ProviderAccumulatedReasoning
+	reasoningSignature := stream.ProviderAccumulatedReasoningSignature
+	reasoningSignatureSource := stream.ProviderAccumulatedReasoningSignatureSource
+	reasoningItemID := stream.ProviderAccumulatedReasoningItemID
+	reasoningStatus := stream.ProviderAccumulatedReasoningStatus
+	reasoningSummary := append([]byte(nil), stream.ProviderAccumulatedReasoningSummary...)
+	stream.mu.Unlock()
+	if strings.TrimSpace(text) == "" && !hasReplayableReasoningPayload(reasoning, reasoningSignature, reasoningSignatureSource) {
+		return false, nil
+	}
+	key := interruptedProviderOutputIdempotencyKey(turnSeq, requestID, modelCallID, providerPass)
+	_, err := service.appendConversationEntries(stream, stream.ConversationID, []HistoryEntry{
+		{
+			TurnSeq:        turnSeq,
+			RequestID:      requestID,
+			IdempotencyKey: key,
+			Role:           "assistant",
+			Kind:           "assistant_text",
+			Payload: newAssistantTextPayload(
+				text,
+				reasoning,
+				reasoningSignature,
+				reasoningSignatureSource,
+				reasoningItemID,
+				reasoningStatus,
+				reasoningSummary,
+			),
+		},
+	})
+	return true, err
+}
+
+func interruptedProviderOutputIdempotencyKey(turnSeq int64, requestID string, modelCallID string, providerPass int) string {
+	payload := strings.Join([]string{
+		"provider_interrupted_output",
+		fmt.Sprintf("%d", turnSeq),
+		strings.TrimSpace(requestID),
+		strings.TrimSpace(modelCallID),
+		fmt.Sprintf("%d", providerPass),
+	}, "\x00")
+	digest := sha256.Sum256([]byte(payload))
+	return "provider-interrupted-output:" + hex.EncodeToString(digest[:])
+}
+
+func cancelMetadataIdempotencyKey(turnSeq int64, requestID string) string {
+	payload := strings.Join([]string{
+		"cancel",
+		fmt.Sprintf("%d", turnSeq),
+		strings.TrimSpace(requestID),
+	}, "\x00")
+	digest := sha256.Sum256([]byte(payload))
+	return "cancel:" + hex.EncodeToString(digest[:])
 }
 
 // handleExecResult 处理客户端返回的执行桥结果，并在终态时把 tool_result 写回 history。
@@ -913,6 +1008,11 @@ func (service *Service) handleExecResult(intent InboundIntent) error {
 			Message: buildShellOutputDeltaMessage(result.ShellOutputDelta),
 		}); err != nil {
 			return err
+		}
+		if message := buildShellToolCallDeltaMessage(pending.ToolCallID, pending.ModelCallID, result.ShellOutputDelta); message != nil {
+			if err := service.broker.Publish(intent.RequestID, StreamEvent{Message: message}); err != nil {
+				return err
+			}
 		}
 	}
 	if !result.IsTerminal {
@@ -1665,6 +1765,13 @@ func (service *Service) handleToolInvocation(stream *ActiveStream, invocation ru
 	stream.ToolInvocationCount++
 	stream.UpdatedAt = time.Now().UTC()
 	stream.mu.Unlock()
+	if !isKnownToolName(trimmedToolName) {
+		displayToolName := trimmedToolName
+		if displayToolName == "" {
+			displayToolName = "<empty>"
+		}
+		return service.completePreDispatchToolError(stream, invocation, nil, false, false, fmt.Errorf("Model hallucination: attempted to invoke a nonexistent tool: %s", displayToolName))
+	}
 	if !isToolAllowedInMode(mode, subagentTypeName, trimmedToolName) {
 		return service.completePreDispatchToolError(stream, invocation, nil, false, false, fmt.Errorf("tool invocation is not enabled in mode %s: %s", mode.String(), invocation.ToolName))
 	}
@@ -2163,6 +2270,15 @@ func (service *Service) finishSuccessfulTurnAfterCheckpoint(stream *ActiveStream
 	return nil
 }
 
+func (service *Service) finishFailedTurnAfterCheckpoint(stream *ActiveStream, terminalCode string, terminalMessage string) error {
+	if stream == nil {
+		return nil
+	}
+	err := service.broker.Fail(stream.RequestID, terminalCode, terminalMessage)
+	service.setTurnPhase(stream, TurnPhaseFailed)
+	return err
+}
+
 func (service *Service) failStreamIfNonTerminal(stream *ActiveStream, terminalCode string, cause error) error {
 	if stream == nil || cause == nil {
 		return nil
@@ -2182,6 +2298,10 @@ func (service *Service) publishCheckpoint(requestID string, conversationID strin
 }
 
 func (service *Service) publishCheckpointWithCompletion(requestID string, _ string, completion *pendingTurnCompletion) error {
+	return service.publishCheckpointWithTerminalAction(requestID, successfulCheckpointTerminalAction(completion))
+}
+
+func (service *Service) publishCheckpointWithTerminalAction(requestID string, terminal checkpointTerminalAction) error {
 	stream, ok := service.broker.Get(requestID)
 	if !ok || stream == nil {
 		return fmt.Errorf("request is not active: %s", requestID)
@@ -2199,7 +2319,7 @@ func (service *Service) publishCheckpointWithCompletion(requestID string, _ stri
 	}
 	projection.State.PendingToolCalls = buildPendingToolCalls(pendingExecs, pendingInteractions)
 	service.rewriteCheckpointTokenDetailsForClient(stream, conversation, projection.State)
-	return service.queueCheckpointProjection(stream, projection, completion)
+	return service.queueCheckpointProjectionWithTerminal(stream, projection, terminal)
 }
 
 func (service *Service) rewriteCheckpointTokenDetailsForClient(stream *ActiveStream, conversation *ConversationFile, state *agentv1.ConversationStateStructure) {
@@ -2339,18 +2459,20 @@ func (service *Service) failActiveStream(stream *ActiveStream, conversationID st
 	if cancel != nil {
 		cancel()
 	}
-	service.setTurnPhase(stream, TurnPhaseFailed)
-	var firstErr error
-	if err := service.syncSummaryCarryForward(conversationID, requestID, modelCallID); err != nil && firstErr == nil {
-		firstErr = err
+	if err := service.syncSummaryCarryForward(conversationID, requestID, modelCallID); err != nil {
+		log.Printf(
+			"forwarder summary sync before failed terminal skipped request_id=%s model_call_id=%s err=%v",
+			strings.TrimSpace(requestID),
+			strings.TrimSpace(modelCallID),
+			err,
+		)
 	}
-	if err := service.publishCheckpoint(requestID, conversationID); err != nil && firstErr == nil {
-		firstErr = err
+	terminal := failedCheckpointTerminalAction(terminalCode, terminalMessage)
+	if err := service.publishCheckpointWithTerminalAction(requestID, terminal); err != nil {
+		log.Printf("forwarder checkpoint queue before failed terminal skipped request_id=%s err=%v", strings.TrimSpace(requestID), err)
+		return service.finishFailedTurnAfterCheckpoint(stream, terminalCode, terminalMessage)
 	}
-	if err := service.broker.Fail(requestID, terminalCode, terminalMessage); err != nil && firstErr == nil {
-		firstErr = err
-	}
-	return firstErr
+	return nil
 }
 
 // buildRunEntries 构造一次 run intent 需要写入 history 的首批 entry。
@@ -2453,6 +2575,16 @@ func newAssistantTextEntry(turnSeq int64, requestID string, text string, reasoni
 }
 
 func newAssistantTextEntryWithProviderMetadata(turnSeq int64, requestID string, text string, reasoningContent string, reasoningSignature string, reasoningSignatureSource string, reasoningItemID string, reasoningStatus string, reasoningSummary json.RawMessage) HistoryEntry {
+	return HistoryEntry{
+		TurnSeq:   turnSeq,
+		RequestID: strings.TrimSpace(requestID),
+		Role:      "assistant",
+		Kind:      "assistant_text",
+		Payload:   newAssistantTextPayload(text, reasoningContent, reasoningSignature, reasoningSignatureSource, reasoningItemID, reasoningStatus, reasoningSummary),
+	}
+}
+
+func newAssistantTextPayload(text string, reasoningContent string, reasoningSignature string, reasoningSignatureSource string, reasoningItemID string, reasoningStatus string, reasoningSummary json.RawMessage) json.RawMessage {
 	payload, _ := json.Marshal(assistantTextPayload{
 		Text:                     text,
 		ReasoningContent:         reasoningContent,
@@ -2462,13 +2594,7 @@ func newAssistantTextEntryWithProviderMetadata(turnSeq int64, requestID string, 
 		ReasoningStatus:          strings.TrimSpace(reasoningStatus),
 		ReasoningSummary:         append(json.RawMessage(nil), reasoningSummary...),
 	})
-	return HistoryEntry{
-		TurnSeq:   turnSeq,
-		RequestID: strings.TrimSpace(requestID),
-		Role:      "assistant",
-		Kind:      "assistant_text",
-		Payload:   payload,
-	}
+	return payload
 }
 
 // newToolCallEntry 构造 tool_call entry。

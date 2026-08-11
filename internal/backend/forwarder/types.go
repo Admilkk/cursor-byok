@@ -39,6 +39,7 @@ type ConversationFile struct {
 	CurrentPlanText                 string                                `json:"current_plan_text,omitempty"`
 	CurrentPlans                    map[string]*agentv1.PlanRegistryEntry `json:"current_plans,omitempty"`
 	CurrentTodos                    []*agentv1.TodoItem                   `json:"current_todos,omitempty"`
+	ImportedTurnIDs                 [][]byte                              `json:"imported_turn_ids,omitempty"`
 	LatestRequestPrefix             *ConversationRequestPrefix            `json:"latest_request_prefix,omitempty"`
 	LastProviderCall                *ConversationProviderCall             `json:"last_provider_call,omitempty"`
 	CreatedAt                       time.Time                             `json:"created_at"`
@@ -79,6 +80,7 @@ type HistoryEntry struct {
 	Seq              int64           `json:"seq"`
 	TurnSeq          int64           `json:"turn_seq"`
 	RequestID        string          `json:"request_id,omitempty"`
+	IdempotencyKey   string          `json:"idempotency_key,omitempty"`
 	Role             string          `json:"role"`
 	Kind             string          `json:"kind"`
 	ToolCallID       string          `json:"tool_call_id,omitempty"`
@@ -223,10 +225,25 @@ type pendingTurnCompletion struct {
 	Disposition    pendingCompletionDisposition
 }
 
+type checkpointTerminalActionKind uint8
+
+const (
+	checkpointTerminalActionNone checkpointTerminalActionKind = iota
+	checkpointTerminalActionComplete
+	checkpointTerminalActionFail
+)
+
+type checkpointTerminalAction struct {
+	Kind         checkpointTerminalActionKind
+	Completion   pendingTurnCompletion
+	ErrorCode    string
+	ErrorMessage string
+}
+
 type pendingCheckpointPublish struct {
-	State      *agentv1.ConversationStateStructure
-	Required   map[string]struct{}
-	Completion *pendingTurnCompletion
+	State    *agentv1.ConversationStateStructure
+	Required map[string]struct{}
+	Terminal checkpointTerminalAction
 }
 
 type PendingCompaction struct {
@@ -428,6 +445,7 @@ type InboundIntent struct {
 	SubagentTypeName         string
 	SubagentModelOverrides   map[string]runtimecore.SubagentModelOverrideSelection
 	ConversationState        *agentv1.ConversationStateStructure
+	PreFetchedBlobs          []*agentv1.PreFetchedBlob
 	UserMessage              *agentv1.UserMessage
 	RequestContext           *agentv1.RequestContext
 	ClientMessage            *agentv1.AgentClientMessage

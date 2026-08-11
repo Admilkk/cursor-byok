@@ -19,6 +19,7 @@ const modelTypeOptions = [
 ];
 
 const reasoningEffortOptions = [
+  { label: "不设置", value: "", icon: "icon-[mdi--minus-circle-outline]" },
   { label: "低", value: "low", icon: "icon-[mdi--head-outline]" },
   { label: "中", value: "medium", icon: "icon-[mdi--head-lightbulb-outline]" },
   { label: "高", value: "high", icon: "icon-[mdi--brain]" },
@@ -51,7 +52,6 @@ const props = defineProps({
     type: Object,
     default: () => createEmptyModelAdapter(),
   },
-  errorMessage: { type: String, default: "" },
 });
 
 const emit = defineEmits(["cancel", "save"]);
@@ -285,13 +285,6 @@ function handleSave() {
                   class="min-h-[120px] resize-none rounded-[6px] border border-[#3f3f3f] bg-[#232323] px-3 py-2 text-sm text-[#e5e5e5] outline-none focus:border-[#10AD5D]"
                 />
               </label>
-
-              <div
-                v-if="errorMessage"
-                class="mt-4 rounded-[8px] border border-[#4b1d1d] bg-[#2a1313] px-3 py-2 text-sm text-[#fca5a5]"
-              >
-                {{ errorMessage }}
-              </div>
 
               <div class="mt-5 flex justify-end gap-2">
                 <Button variant="default" @click="handleCancel">取消</Button>

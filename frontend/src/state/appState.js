@@ -12,18 +12,20 @@ import {
   loadUserConfig,
   openLogsDirectory,
   openModelConfig,
-  openModelEditor,
   saveUserConfig,
   startProxyService,
   stopProxyService,
   testModelAdapter,
   fetchModelAdapterModels,
 } from "@/services/clientApi";
+import {
+  normalizeReasoningEffort,
+  SUPPORTED_REASONING_EFFORTS,
+} from "@/state/modelAdapterReasoning";
 
 const APP_STATE_STORAGE_KEY = "cursor-client:runtime-state:v2";
 const GENERIC_SERVICE_ERROR = "服务错误";
 const SUPPORTED_MODEL_ADAPTER_TYPES = new Set(["openai", "anthropic"]);
-const SUPPORTED_REASONING_EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"]);
 const SUPPORTED_ANTHROPIC_THINKING_EFFORTS = new Set(["low", "medium", "high", "xhigh", "max"]);
 export const ANTHROPIC_THINKING_EFFORT_DEFAULT = "xhigh";
 export const OPENAI_ENDPOINT_RESPONSES = "/v1/responses";
@@ -166,7 +168,7 @@ export function buildModelAdapterTestRequestHash(source) {
     normalizeBaseURL(adapter.baseURL),
     asString(adapter.apiKey),
     asString(adapter.modelID),
-    adapter.type === "openai" ? asString(adapter.reasoningEffort || "medium") : "",
+    adapter.type === "openai" ? asString(adapter.reasoningEffort) : "",
     adapter.type === "openai" ? normalizeOpenAIEndpoint(adapter.openAIEndpoint) : "",
     adapter.type === "openai" ? String(Boolean(adapter.openAIExtraParamsEnabled)) : "false",
     adapter.type === "openai" && adapter.openAIExtraParamsEnabled ? asString(adapter.openAIExtraParamsJSON) : "",
@@ -227,7 +229,7 @@ function normalizeModelAdapterTestResult(source) {
     rawResponse: asString(raw.rawResponse),
     testedAt: asString(raw.testedAt),
   };
-  if (!normalized.summaryText) {
+  if (status === "running" || status === "success") {
     normalized.summaryText = formatModelAdapterTestSummary(normalized);
   }
   if (status === "error" && !normalized.summaryText) {
@@ -248,13 +250,14 @@ function normalizeModelAdapterTestResults(source) {
 export function createEmptyModelAdapter() {
   return {
     id: "",
+    sort: 0,
     displayName: "",
     type: "openai",
     baseURL: "",
     apiKey: "",
     tooltipData: "备注",
     modelID: "",
-    reasoningEffort: "medium",
+    reasoningEffort: "",
     openAIEndpoint: OPENAI_ENDPOINT_RESPONSES,
     openAIExtraParamsEnabled: false,
     openAIExtraParamsJSON: OPENAI_EXTRA_PARAMS_DEFAULT_JSON,
@@ -329,7 +332,7 @@ function validateAnthropicExtraParamsJSON(value) {
 export function normalizeModelAdapter(source) {
   const raw = source && typeof source === "object" ? source : {};
   const normalizedType = asString(raw.type).toLowerCase();
-  const normalizedReasoningEffort = asString(raw.reasoningEffort || raw.reasoning_effort).toLowerCase();
+  const normalizedReasoningEffort = normalizeReasoningEffort(raw.reasoningEffort ?? raw.reasoning_effort);
   const normalizedAnthropicThinkingEffort = asString(
     raw.anthropicThinkingEffort
       ?? raw.anthropic_thinking_effort
@@ -355,15 +358,14 @@ export function normalizeModelAdapter(source) {
     : "";
   return {
     id: asString(raw.id),
+    sort: asPositiveInteger(raw.sort),
     displayName: asString(raw.displayName || raw.name),
     type: SUPPORTED_MODEL_ADAPTER_TYPES.has(normalizedType) ? normalizedType : "",
     baseURL: normalizeBaseURL(raw.baseURL || raw.url),
     apiKey: asString(raw.apiKey || raw.key),
     tooltipData: asString(raw.tooltipData),
     modelID: asString(raw.modelID),
-    reasoningEffort: SUPPORTED_REASONING_EFFORTS.has(normalizedReasoningEffort)
-      ? normalizedReasoningEffort
-      : "medium",
+    reasoningEffort: normalizedReasoningEffort,
     openAIEndpoint: normalizedType === "openai" ? normalizedOpenAIEndpoint : "",
     openAIExtraParamsEnabled,
     openAIExtraParamsJSON,
@@ -392,7 +394,29 @@ export function normalizeModelAdapter(source) {
 }
 
 export function normalizeModelAdapters(source) {
-  return asArray(source).map((item) => normalizeModelAdapter(item));
+  return asArray(source)
+    .map((item, sourceIndex) => ({
+      adapter: normalizeModelAdapter(item),
+      sourceIndex,
+    }))
+    .sort((left, right) => {
+      const leftSort = left.adapter.sort;
+      const rightSort = right.adapter.sort;
+      if (leftSort <= 0 && rightSort <= 0) {
+        return left.sourceIndex - right.sourceIndex;
+      }
+      if (leftSort <= 0) {
+        return 1;
+      }
+      if (rightSort <= 0) {
+        return -1;
+      }
+      return leftSort - rightSort || left.sourceIndex - right.sourceIndex;
+    })
+    .map(({ adapter }, index) => ({
+      ...adapter,
+      sort: index + 1,
+    }));
 }
 
 export function validateModelAdapters(source) {
@@ -400,9 +424,6 @@ export function validateModelAdapters(source) {
   const seenIdentityKeys = new Set();
   for (const [index, adapter] of adapters.entries()) {
     const prefix = `模型 ${index + 1}`;
-    if (!adapter.displayName) {
-      return `${prefix} 的显示名称不能为空`;
-    }
     if (!SUPPORTED_MODEL_ADAPTER_TYPES.has(adapter.type)) {
       return `${prefix} 的类型仅支持 OpenAI 或 Anthropic`;
     }
@@ -412,14 +433,26 @@ export function validateModelAdapters(source) {
     if (!adapter.apiKey) {
       return `${prefix} 的访问密钥不能为空`;
     }
-    if (!adapter.tooltipData) {
-      return `${prefix} 的悬停提示不能为空`;
+    if (!adapter.displayName) {
+      return `${prefix} 的显示名称不能为空`;
     }
     if (!adapter.modelID) {
       return `${prefix} 的模型标识不能为空`;
     }
+    if (adapter.contextWindowTokens && (!Number.isInteger(adapter.contextWindowTokens) || adapter.contextWindowTokens <= 0)) {
+      return `${prefix} 的上下文窗口必须为正整数`;
+    }
     if (adapter.type === "openai" && !SUPPORTED_REASONING_EFFORTS.has(adapter.reasoningEffort)) {
-      return `${prefix} 的推理强度仅支持 low、medium、high、xhigh、max`;
+      return `${prefix} 的推理强度仅支持不设置、low、medium、high、xhigh、max`;
+    }
+    if (adapter.type === "anthropic" && adapter.anthropicMaxTokens && (!Number.isInteger(adapter.anthropicMaxTokens) || adapter.anthropicMaxTokens <= 0)) {
+      return `${prefix} 的最大输出 Token 必须为正整数`;
+    }
+    if (adapter.type === "anthropic" && !SUPPORTED_ANTHROPIC_THINKING_EFFORTS.has(adapter.anthropicThinkingEffort)) {
+      return `${prefix} 的 Anthropic 思考强度仅支持 low、medium、high、xhigh、max`;
+    }
+    if (adapter.type === "openai" && adapter.maxCompletionTokens && (!Number.isInteger(adapter.maxCompletionTokens) || adapter.maxCompletionTokens <= 0)) {
+      return `${prefix} 的最大输出 Token 必须为正整数`;
     }
     if (adapter.type === "openai" && !isValidOpenAIEndpoint(adapter.openAIEndpoint)) {
       return `${prefix} 的 OpenAI 端点仅支持 /v1/responses、/v1/chat/completions 或以 / 开头的自定义路径`;
@@ -430,29 +463,20 @@ export function validateModelAdapters(source) {
         return `${prefix} 的 ${extraParamsError}`;
       }
     }
-    if (adapter.customHeadersEnabled) {
-      const customHeadersError = validateHeadersJSON(adapter.customHeadersJSON);
-      if (customHeadersError) {
-        return `${prefix} 的 ${customHeadersError}`;
-      }
-    }
     if (adapter.type === "anthropic" && adapter.anthropicExtraParamsEnabled) {
       const extraParamsError = validateAnthropicExtraParamsJSON(adapter.anthropicExtraParamsJSON);
       if (extraParamsError) {
         return `${prefix} 的 ${extraParamsError}`;
       }
     }
-    if (adapter.type === "anthropic" && !SUPPORTED_ANTHROPIC_THINKING_EFFORTS.has(adapter.anthropicThinkingEffort)) {
-      return `${prefix} 的 Anthropic 思考强度仅支持 low、medium、high、xhigh、max`;
+    if (adapter.customHeadersEnabled) {
+      const customHeadersError = validateHeadersJSON(adapter.customHeadersJSON);
+      if (customHeadersError) {
+        return `${prefix} 的 ${customHeadersError}`;
+      }
     }
-    if (adapter.contextWindowTokens && (!Number.isInteger(adapter.contextWindowTokens) || adapter.contextWindowTokens <= 0)) {
-      return `${prefix} 的上下文窗口必须为正整数`;
-    }
-    if (adapter.maxCompletionTokens && (!Number.isInteger(adapter.maxCompletionTokens) || adapter.maxCompletionTokens <= 0)) {
-      return `${prefix} 的最大输出 Token 必须为正整数`;
-    }
-    if (adapter.anthropicMaxTokens && (!Number.isInteger(adapter.anthropicMaxTokens) || adapter.anthropicMaxTokens <= 0)) {
-      return `${prefix} 的最大输出 Token 必须为正整数`;
+    if (!adapter.tooltipData) {
+      return `${prefix} 的悬停提示不能为空`;
     }
     if (adapter.thinkingBudgetTokens && (!Number.isInteger(adapter.thinkingBudgetTokens) || adapter.thinkingBudgetTokens <= 0)) {
       return `${prefix} 的思考预算 Token 必须为正整数`;
@@ -1063,6 +1087,10 @@ export async function refreshModelAdapterTestResults() {
 
 export function startModelAdapterTest(adapter) {
   const normalized = normalizeModelAdapter(adapter);
+  const validationError = validateModelAdapters([normalized]);
+  if (validationError) {
+    return Promise.reject(new Error(validationError));
+  }
   return testModelAdapter(normalized).then((rawResult) => {
     const result = normalizeModelAdapterTestResult(rawResult);
     if (result.adapterID) {
@@ -1151,93 +1179,6 @@ export async function fetchAvailableModelIDs(payload) {
     .filter(Boolean);
 }
 
-function buildPrefixedModelDisplayName(prefix, modelID) {
-  const normalizedPrefix = asString(prefix) || "模型";
-  return `${normalizedPrefix}-${asString(modelID)}`;
-}
-
-export function buildModelAdaptersFromModelIDs(source, modelIDs, prefix) {
-  const base = normalizeModelAdapter(source);
-  const seen = new Set();
-  return asArray(modelIDs)
-    .map((item) => asString(item))
-    .filter((modelID) => {
-      if (!modelID || seen.has(modelID)) {
-        return false;
-      }
-      seen.add(modelID);
-      return true;
-    })
-    .map((modelID) => normalizeModelAdapter({
-      ...base,
-      id: "",
-      modelID,
-      displayName: buildPrefixedModelDisplayName(prefix, modelID),
-      tooltipData: base.tooltipData || "备注",
-    }));
-}
-
-function findModelAdapterUpsertIndex(adapters, target) {
-  return adapters.findIndex((adapter) => {
-    const current = normalizeModelAdapter(adapter);
-    return current.type === target.type
-      && normalizeBaseURL(current.baseURL) === normalizeBaseURL(target.baseURL)
-      && current.apiKey === target.apiKey
-      && current.modelID === target.modelID
-      && current.displayName === target.displayName
-      && (current.type !== "openai" || current.openAIEndpoint === target.openAIEndpoint);
-  });
-}
-
-export async function saveModelAdaptersFromModelIDs(source, modelIDs, prefix, selectedModelID = "") {
-  const generatedAdapters = buildModelAdaptersFromModelIDs(source, modelIDs, prefix);
-  if (generatedAdapters.length === 0) {
-    return { ok: false, error: "没有可保存的模型" };
-  }
-
-  const generatedError = validateModelAdapters(generatedAdapters);
-  if (generatedError) {
-    return { ok: false, error: generatedError };
-  }
-
-  const currentConfig = await loadPersistedUserConfig();
-  const nextAdapters = normalizeModelAdapters(currentConfig.modelAdapters);
-  const targetModelID = asString(selectedModelID) || generatedAdapters[0]?.modelID || "";
-  let selectedIndex = -1;
-
-  for (const adapter of generatedAdapters) {
-    const index = findModelAdapterUpsertIndex(nextAdapters, adapter);
-    if (index >= 0) {
-      nextAdapters.splice(index, 1, adapter);
-      if (selectedIndex < 0 && adapter.modelID === targetModelID) {
-        selectedIndex = index;
-      }
-      continue;
-    }
-    nextAdapters.push(adapter);
-    if (selectedIndex < 0 && adapter.modelID === targetModelID) {
-      selectedIndex = nextAdapters.length - 1;
-    }
-  }
-
-  const result = await persistConfigPayload(
-    {
-      ...currentConfig,
-      modelAdapters: nextAdapters,
-    },
-    { modelAdaptersOnly: true },
-  );
-  if (!result.ok) {
-    return result;
-  }
-  return {
-    ...result,
-    index: selectedIndex,
-    adapter: selectedIndex >= 0 ? appState.modelAdapters[selectedIndex] ?? null : null,
-    count: generatedAdapters.length,
-  };
-}
-
 export async function deleteModelAdapterAt(index) {
   const currentConfig = await loadPersistedUserConfig();
   const nextAdapters = normalizeModelAdapters(currentConfig.modelAdapters);
@@ -1251,6 +1192,39 @@ export async function deleteModelAdapterAt(index) {
 
   nextAdapters.splice(index, 1);
 
+  return persistConfigPayload(
+    {
+      ...currentConfig,
+      modelAdapters: nextAdapters,
+    },
+    { modelAdaptersOnly: true },
+  );
+}
+
+export async function saveModelAdapterOrder(adapterIDs) {
+  const orderedIDs = asArray(adapterIDs)
+    .map((item) => asString(item))
+    .filter(Boolean);
+  const currentConfig = await loadPersistedUserConfig();
+  const currentAdapters = normalizeModelAdapters(currentConfig.modelAdapters);
+  const adaptersByID = new Map(currentAdapters.map((adapter) => [adapter.id, adapter]));
+  const uniqueIDs = new Set(orderedIDs);
+
+  if (
+    orderedIDs.length !== currentAdapters.length
+    || uniqueIDs.size !== currentAdapters.length
+    || orderedIDs.some((id) => !adaptersByID.has(id))
+  ) {
+    return {
+      ok: false,
+      error: "模型配置已发生变化，请刷新后重试",
+    };
+  }
+
+  const nextAdapters = orderedIDs.map((id, index) => ({
+    ...adaptersByID.get(id),
+    sort: index + 1,
+  }));
   return persistConfigPayload(
     {
       ...currentConfig,
@@ -1401,11 +1375,6 @@ export async function openConfigWindow() {
 
 export async function openModelConfigWindow() {
   await openModelConfig();
-}
-
-export async function openModelEditorWindow(index, adapter) {
-  const adapterJSON = JSON.stringify(normalizeModelAdapter(adapter));
-  await openModelEditor(index, adapterJSON);
 }
 
 export async function checkForAppUpdates() {

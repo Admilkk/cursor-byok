@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -36,6 +37,8 @@ const (
 // ModelAdapterConfig 定义了当前模块中的 ModelAdapterConfig 类型。
 type ModelAdapterConfig struct {
 	ID string `json:"id,omitempty"`
+	// Sort 表示模型渠道的展示顺序。
+	Sort int `json:"sort"`
 	// DisplayName 表示当前声明中的 DisplayName。
 	DisplayName string `json:"displayName"`
 	// Type 表示当前声明中的 Type。
@@ -103,6 +106,7 @@ func NormalizeModelAdapterConfigs(input []ModelAdapterConfig) ([]ModelAdapterCon
 			return nil, err
 		}
 		next := ModelAdapterConfig{
+			Sort:                 item.Sort,
 			DisplayName:          strings.TrimSpace(item.DisplayName),
 			Type:                 normalizeModelAdapterType(item.Type),
 			BaseURL:              baseURL,
@@ -137,8 +141,8 @@ func NormalizeModelAdapterConfigs(input []ModelAdapterConfig) ([]ModelAdapterCon
 			return nil, errors.New("模型适配器 tooltipData 不能为空")
 		case next.ModelID == "":
 			return nil, errors.New("模型适配器 modelID 不能为空")
-		case next.Type == "openai" && next.ReasoningEffort == "":
-			return nil, errors.New("模型适配器 reasoningEffort 仅支持 low、medium、high、xhigh、max")
+		case next.Type == "openai" && !isSupportedReasoningEffort(next.ReasoningEffort):
+			return nil, errors.New("模型适配器 reasoningEffort 仅支持空值、low、medium、high、xhigh、max")
 		case next.Type == "openai" && next.OpenAIEndpoint == "":
 			return nil, errors.New("模型适配器 openAIEndpoint 仅支持 /v1/responses 或 /v1/chat/completions")
 		case next.Type == "openai" && next.OpenAIExtraParamsEnabled:
@@ -163,7 +167,28 @@ func NormalizeModelAdapterConfigs(input []ModelAdapterConfig) ([]ModelAdapterCon
 		seenChannelIDs[next.ID] = struct{}{}
 		normalized = append(normalized, next)
 	}
+	normalizeModelAdapterSorts(normalized)
 	return normalized, nil
+}
+
+func normalizeModelAdapterSorts(adapters []ModelAdapterConfig) {
+	sort.SliceStable(adapters, func(leftIndex, rightIndex int) bool {
+		left := adapters[leftIndex].Sort
+		right := adapters[rightIndex].Sort
+		switch {
+		case left <= 0 && right <= 0:
+			return false
+		case left <= 0:
+			return false
+		case right <= 0:
+			return true
+		default:
+			return left < right
+		}
+	})
+	for index := range adapters {
+		adapters[index].Sort = index + 1
+	}
 }
 
 func validateJSONMap(value string, fieldName string) error {
@@ -199,13 +224,15 @@ func validateHeadersJSON(value string) error {
 }
 
 func normalizeReasoningEffort(value string) string {
-	switch strings.ToLower(strings.TrimSpace(value)) {
-	case "", "medium":
-		return "medium"
-	case "low", "high", "xhigh", "max":
-		return strings.ToLower(strings.TrimSpace(value))
+	return strings.ToLower(strings.TrimSpace(value))
+}
+
+func isSupportedReasoningEffort(value string) bool {
+	switch value {
+	case "", "low", "medium", "high", "xhigh", "max":
+		return true
 	default:
-		return ""
+		return false
 	}
 }
 

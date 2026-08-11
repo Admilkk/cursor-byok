@@ -2,6 +2,7 @@
 import Button from "@/components/ui/Button.vue";
 import Card from "@/components/ui/Card.vue";
 import Tooltip from "@/components/ui/Tooltip.vue";
+import { useMessage } from "@/composables/useMessage";
 import { showModal } from "@/composables/useModal";
 import {
   disconnectCursorAccount,
@@ -13,6 +14,7 @@ import { Browser } from "@wailsio/runtime";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 
 const CURSOR_ACCOUNT_CONTRIBUTOR_URL = "https://github.com/aike0210";
+const message = useMessage();
 
 const cursorAccountStatus = ref({
   state: "signed_out",
@@ -23,30 +25,52 @@ const cursorAccountStatus = ref({
 const cursorAccountBusy = ref(false);
 let cursorAccountTimer = null;
 
+function maskCursorAccountIdentifier(value) {
+  const identifier = String(value || "").trim();
+  if (!identifier) return "";
+
+  const atIndex = identifier.indexOf("@");
+  if (atIndex > 0 && atIndex < identifier.length - 1) {
+    const localPart = identifier.slice(0, atIndex);
+    const domain = identifier.slice(atIndex + 1);
+    const maskedLocalPart = localPart.length <= 2
+      ? `${localPart[0]}***`
+      : `${localPart[0]}***${localPart.at(-1)}`;
+    return `${maskedLocalPart}@${domain}`;
+  }
+
+  if (identifier.length <= 8) return "****";
+  return `${identifier.slice(0, 4)}****${identifier.slice(-4)}`;
+}
+
 const cursorAccountSignedIn = computed(
   () => cursorAccountStatus.value.state === "signed_in",
 );
 const cursorAccountWaiting = computed(
   () => cursorAccountStatus.value.state === "waiting",
 );
+const cursorAccountDisplayIdentifier = computed(() => {
+  if (!cursorAccountSignedIn.value) return "";
+  return maskCursorAccountIdentifier(
+    cursorAccountStatus.value.email || cursorAccountStatus.value.authId,
+  );
+});
 const cursorAccountStateText = computed(() => {
   if (cursorAccountSignedIn.value) return "已经登录";
   if (cursorAccountWaiting.value) return "等待浏览器登录";
   return "未连接";
 });
 
-async function showActionError(title, error) {
-  await showModal({
-    title,
-    content: String(error || "服务错误").trim() || "服务错误",
-  });
+function showActionError(title, error) {
+  const detail = String(error || "服务错误").trim() || "服务错误";
+  message(`${title}：${detail}`);
 }
 
 async function handleOpenContributor() {
   try {
     await Browser.OpenURL(CURSOR_ACCOUNT_CONTRIBUTOR_URL);
   } catch (error) {
-    await showActionError("打开贡献者主页失败", toUserError(error));
+    showActionError("打开贡献者主页失败", toUserError(error));
   }
 }
 
@@ -59,7 +83,7 @@ async function handleCursorAccountLogin() {
   try {
     cursorAccountStatus.value = await startCursorAccountLogin();
   } catch (error) {
-    await showActionError("登录失败", toUserError(error));
+    showActionError("登录失败", toUserError(error));
     await refreshCursorAccountStatus().catch(() => {});
   } finally {
     cursorAccountBusy.value = false;
@@ -80,7 +104,7 @@ async function handleCursorAccountDisconnect() {
   try {
     cursorAccountStatus.value = await disconnectCursorAccount();
   } catch (error) {
-    await showActionError("退出登录失败", toUserError(error));
+    showActionError("退出登录失败", toUserError(error));
   } finally {
     cursorAccountBusy.value = false;
   }
@@ -137,10 +161,10 @@ onUnmounted(() => {
       <div class="flex items-end justify-between gap-4">
         <div class="min-w-0">
           <div
-            v-if="cursorAccountSignedIn && (cursorAccountStatus.email || cursorAccountStatus.authId)"
+            v-if="cursorAccountDisplayIdentifier"
             class="truncate text-sm text-[#d0d0d0]"
           >
-            {{ cursorAccountStatus.email || cursorAccountStatus.authId }}
+            {{ cursorAccountDisplayIdentifier }}
           </div>
           <div class="mt-1 text-sm text-[#a3a3a3]">
             独立用于插件、Skills 和 MCP；不会改变 Cursor 客户端当前账号
