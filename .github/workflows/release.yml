@@ -2,11 +2,8 @@ name: Release desktop app
 
 on:
   push:
-    branches:
-      - main
     tags:
       - "v*"
-  workflow_dispatch:
 
 permissions:
   contents: write
@@ -24,6 +21,18 @@ jobs:
       version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify release author
+        env:
+          REPOSITORY_OWNER: ${{ github.repository_owner }}
+        shell: bash
+        run: |
+          if [[ "${GITHUB_ACTOR}" != "${REPOSITORY_OWNER}" ]]; then
+            echo "Only ${REPOSITORY_OWNER} may publish a release" >&2
+            exit 1
+          fi
 
       - name: Verify updater signing key
         env:
@@ -44,8 +53,12 @@ jobs:
           cargo_version=$(sed -n '/^version = / { s/version = "\([^"]*\)"/\1/p; q; }' apps/desktop/src-tauri/Cargo.toml)
           test "${version}" = "${package_version}"
           test "${version}" = "${cargo_version}"
-          if [[ "${GITHUB_REF_TYPE}" = "tag" ]]; then
-            test "${GITHUB_REF_NAME}" = "v${version}"
+          test "${GITHUB_REF_TYPE}" = "tag"
+          test "${GITHUB_REF_NAME}" = "v${version}"
+          git fetch origin main:refs/remotes/origin/main
+          if ! git merge-base --is-ancestor "${GITHUB_SHA}" origin/main; then
+            echo "Release tag must point to a commit contained in origin/main" >&2
+            exit 1
           fi
           echo "version=${version}" >> "${GITHUB_OUTPUT}"
 
@@ -78,7 +91,7 @@ jobs:
             target: ""
           - platform: windows-x86_64
             os: windows-latest
-            args: ""
+            args: "--bundles nsis"
             target: ""
           - platform: macos-aarch64
             os: macos-15
@@ -130,10 +143,10 @@ jobs:
           projectPath: apps/desktop
           tagName: v__VERSION__
           releaseName: Cursor BYOK v__VERSION__
-          releaseBody: Beta release. Download the installer for your platform from the assets below.
+          releaseBody: ${{ contains(needs.prepare.outputs.version, '-') && 'Beta release. Download the installer for your platform from the assets below.' || 'Download the installer for your platform from the assets below.' }}
           releaseDraft: true
           prerelease: false
-          includeUpdaterJson: true
+          uploadUpdaterJson: true
           args: ${{ matrix.args }}
 
       - name: Package legacy Linux updater asset

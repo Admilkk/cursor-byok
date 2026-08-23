@@ -259,18 +259,27 @@ async fn text_turn_runs_from_bidi_request_through_checkpoint_and_end_stream() {
         .contains("powered by Test Model"));
     let projected = &requests[0].history;
     assert_eq!(projected[0].role, Role::User);
-    let ProjectedContent::Parts(runtime) = &projected[0].content else {
-        panic!("runtime context must be text")
+    assert!(projected[0].message_id.starts_with("request-context:"));
+    let ProjectedContent::Parts(context) = &projected[0].content else {
+        panic!("request context must be text")
+    };
+    assert!(matches!(
+        context.as_slice(),
+        [cursor_server::model::ContentPart::Text { text }]
+            if text.contains("<user_info>")
+    ));
+    let ProjectedContent::Parts(runtime) = &projected[1].content else {
+        panic!("runtime user message must be text")
     };
     assert!(matches!(
         runtime.as_slice(),
         [cursor_server::model::ContentPart::Text { text }]
-            if text.contains("<user_info>")
-                && text.contains("<user_query>\nhello\n</user_query>")
+            if text.contains("<user_query>\nhello\n</user_query>")
+                && !text.contains("<user_info>")
     ));
     assert_eq!(
         projected.len(),
-        1,
+        2,
         "the raw UserMessage is not projected twice"
     );
 
@@ -278,9 +287,15 @@ async fn text_turn_runs_from_bidi_request_through_checkpoint_and_end_stream() {
         .load_current_messages(&cursor_server::model::ConversationId::new("conversation"))
         .await
         .unwrap();
-    assert_eq!(messages[0].message_id, "runtime:run-request:request");
+    assert!(messages[0].message_id.starts_with("request-context:"));
     assert_eq!(messages[0].role, Role::User);
-    assert_eq!(messages.len(), 2, "runtime user plus final assistant");
+    assert_eq!(messages[1].message_id, "runtime:run-request:request");
+    assert_eq!(messages[1].role, Role::User);
+    assert_eq!(
+        messages.len(),
+        3,
+        "request context plus runtime user and final assistant"
+    );
     let stored_runs: Vec<String> = sqlx::query_scalar("SELECT run_id FROM runs ORDER BY run_id")
         .fetch_all(store.pool())
         .await

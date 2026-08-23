@@ -30,17 +30,15 @@ pub fn decode(data: &[u8], internal_id: String) -> Result<CanonicalMessage> {
         .and_then(Value::as_str)
         .unwrap_or_default()
         .to_string();
+    let is_request_context = role == Role::User && wire_id.starts_with("request-context:");
+    let is_prompt_context =
+        is_request_context || role == Role::User && wire_id.starts_with("selected-context:");
     let origin = match role {
         Role::System => Origin::Prompt,
         Role::Assistant => Origin::Assistant,
         Role::Tool => Origin::Tool,
         Role::User if wire_id.starts_with("runtime:") => Origin::Runtime,
-        Role::User
-            if wire_id.starts_with("request-context:")
-                || wire_id.starts_with("selected-context:") =>
-        {
-            Origin::Prompt
-        }
+        Role::User if is_prompt_context => Origin::Prompt,
         Role::User => Origin::User,
     };
     let runtime_event_id = wire_id.strip_prefix("runtime:").map(str::to_string);
@@ -49,7 +47,7 @@ pub fn decode(data: &[u8], internal_id: String) -> Result<CanonicalMessage> {
         Role::Tool => MessageContent::ToolResult(decode_tool_result(&value)?),
         _ => decode_text(&value)?,
     };
-    let message_id = if runtime_event_id.is_some() {
+    let message_id = if runtime_event_id.is_some() || is_request_context {
         wire_id
     } else {
         internal_id

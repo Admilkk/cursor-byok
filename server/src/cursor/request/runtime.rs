@@ -87,10 +87,6 @@ pub async fn compile(
             .map(|env| env.time_zone.as_str()),
     )?;
     let mut values = BTreeMap::from([
-        (
-            "REQUEST_CONTEXT",
-            section(context::compile_context(request_context, &time.today)),
-        ),
         ("OPEN_FILES", section(open_files(user))),
         (
             "SELECTED_CONTEXT",
@@ -120,6 +116,41 @@ pub async fn compile(
         blobs,
     )
     .await
+}
+
+pub(super) fn compile_request_context(
+    event_id: &str,
+    request_context: &pb::RequestContext,
+    history: &[CanonicalMessage],
+) -> Result<Option<CanonicalMessage>> {
+    let time = Time::now(
+        request_context
+            .env
+            .as_ref()
+            .map(|env| env.time_zone.as_str()),
+    )?;
+    let text = context::compile_context(request_context, &time.today);
+    if text.is_empty() {
+        return Ok(None);
+    }
+    let message = CanonicalMessage::text(
+        format!("request-context:{event_id}"),
+        Role::User,
+        Origin::Prompt,
+        text,
+    );
+    Ok(should_project_request_context(history, &message).then_some(message))
+}
+
+fn should_project_request_context(
+    history: &[CanonicalMessage],
+    current: &CanonicalMessage,
+) -> bool {
+    history
+        .iter()
+        .rev()
+        .find(|message| message.message_id.starts_with("request-context:"))
+        .is_none_or(|previous| previous.content != current.content)
 }
 
 pub async fn compile_background(
@@ -250,5 +281,57 @@ impl Time {
             timestamp: format!("{} ({utc})", now.format("%A, %b %-d, %Y, %-I:%M %p")),
             today: now.format("%A %b %-d,\n%Y").to_string(),
         })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn request_context_is_only_projected_when_its_content_changes() {
+        let first = CanonicalMessage::text(
+            "request-context:first",
+            Role::User,
+            Origin::Prompt,
+            "<rules>same</rules>",
+        );
+        let duplicate = CanonicalMessage::text(
+            "request-context:second",
+            Role::User,
+            Origin::Prompt,
+            "<rules>same</rules>",
+        );
+        let changed = CanonicalMessage::text(
+            "request-context:third",
+            Role::User,
+            Origin::Prompt,
+            "<rules>changed</rules>",
+        );
+        let runtime = CanonicalMessage::text(
+            "runtime:turn",
+            Role::User,
+            Origin::Runtime,
+            "<user_query>next</user_query>",
+        );
+
+        assert!(should_project_request_context(&[], &first));
+        assert!(!should_project_request_context(
+            &[first.clone(), runtime.clone()],
+            &duplicate
+        ));
+        assert!(should_project_request_context(
+            &[first.clone(), runtime.clone()],
+            &changed
+        ));
+        assert!(should_project_request_context(
+            &[first.clone(), changed, runtime],
+            &CanonicalMessage::text(
+                "request-context:fourth",
+                Role::User,
+                Origin::Prompt,
+                "<rules>same</rules>",
+            )
+        ));
     }
 }

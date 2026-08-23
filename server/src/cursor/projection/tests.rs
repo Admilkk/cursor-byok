@@ -132,6 +132,23 @@ fn runtime_wire_identity_survives_checkpoint_hydration() {
 }
 
 #[test]
+fn request_context_identity_survives_checkpoint_hydration() {
+    let wire = json!({
+        "role": "user",
+        "id": "request-context:digest",
+        "content": "<rules>current rules</rules>",
+    });
+    let message = decode(
+        serde_json::to_vec(&wire).unwrap().as_slice(),
+        "cursor-root:blob-id:20".into(),
+    )
+    .unwrap();
+
+    assert_eq!(message.message_id, "request-context:digest");
+    assert_eq!(message.origin, crate::model::Origin::Prompt);
+}
+
+#[test]
 fn cursor_user_image_uses_image_field() {
     let wire = json!({
         "role": "user",

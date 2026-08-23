@@ -323,7 +323,6 @@ fn every_captured_mode_owns_and_renders_its_runtime_template() {
         .unwrap(),
     );
     let values = BTreeMap::from([
-        ("REQUEST_CONTEXT", String::new()),
         ("OPEN_FILES", String::new()),
         ("SELECTED_CONTEXT", String::new()),
         ("ACTION_CONTEXT", String::new()),

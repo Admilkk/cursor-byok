@@ -19,9 +19,9 @@ use cursor_server::{
 use prost::Message;
 
 #[tokio::test]
-async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message() {
+async fn unchanged_request_context_is_not_repeated_and_preserves_the_provider_prefix() {
     let (_directory, store) = fixtures::temp_store().await;
-    let references = references(&store).await;
+    let first_references = references(&store).await;
     let provider = fake_provider::FakeProvider::default();
     provider.push(vec![
         ModelEvent::Start {
@@ -32,6 +32,15 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
         ModelEvent::TextEnd,
         ModelEvent::Done(FinishReason::Stop),
     ]);
+    provider.push(vec![
+        ModelEvent::Start {
+            model_call_id: "model-2".into(),
+        },
+        ModelEvent::TextStart,
+        ModelEvent::TextDelta("answer again".into()),
+        ModelEvent::TextEnd,
+        ModelEvent::Done(FinishReason::Stop),
+    ]);
     let assets = PromptAssets::load(
         std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("prompt/cursor")
@@ -39,7 +48,7 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
     )
     .unwrap();
     let registry = CursorSessionRegistry::new(
-        store,
+        store.clone(),
         Arc::new(provider.clone()),
         PromptCompiler::new(assets),
         Default::default(),
@@ -49,12 +58,13 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
     handle
         .command(CursorCommand::Append {
             seqno: 0,
-            message: Box::new(run_request(references)),
+            message: Box::new(run_request(first_references)),
         })
         .await
         .unwrap();
 
     let mut seqno = 1;
+    let mut checkpoint = None;
     loop {
         let frame = tokio::time::timeout(std::time::Duration::from_secs(5), output.recv())
             .await
@@ -65,15 +75,21 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
             break;
         }
         let message = pb::AgentServerMessage::decode(payload).unwrap();
-        if let Some(pb::agent_server_message::Message::KvServerMessage(kv)) = message.message {
-            handle
-                .command(CursorCommand::Append {
-                    seqno,
-                    message: Box::new(kv_ack(kv.id)),
-                })
-                .await
-                .unwrap();
-            seqno += 1;
+        match message.message {
+            Some(pb::agent_server_message::Message::KvServerMessage(kv)) => {
+                handle
+                    .command(CursorCommand::Append {
+                        seqno,
+                        message: Box::new(kv_ack(kv.id)),
+                    })
+                    .await
+                    .unwrap();
+                seqno += 1;
+            }
+            Some(pb::agent_server_message::Message::ConversationCheckpointUpdate(state)) => {
+                checkpoint = Some(state);
+            }
+            _ => {}
         }
     }
 
@@ -89,12 +105,23 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
         .tools
         .iter()
         .any(|tool| tool.name == "GenerateImage"));
-    assert_eq!(request.history.len(), 1);
+    assert_eq!(request.history.len(), 2);
+    assert!(request.history[0]
+        .message_id
+        .starts_with("request-context:"));
+    let ProjectedContent::Parts(context_parts) = &request.history[0].content else {
+        panic!("request context message must use typed parts")
+    };
+    let [ContentPart::Text { text: context_text }] = context_parts.as_slice() else {
+        panic!("request context message must contain one text part")
+    };
     assert_eq!(
-        request.history[0].message_id,
+        request.history[1].message_id,
         "runtime:run-request:ask-request"
     );
-    let ProjectedContent::Parts(parts) = &request.history[0].content else {
+    assert!(!request.prompt.instructions.contains("workspace rule"));
+    assert!(!request.prompt.instructions.contains("<mcp_meta_tools>"));
+    let ProjectedContent::Parts(parts) = &request.history[1].content else {
         panic!("runtime message must use typed parts")
     };
     let [ContentPart::Text { text }] = parts.as_slice() else {
@@ -109,6 +136,15 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
         "<definition_path>/tmp/mcp-test/lookup.json</definition_path>",
         "<input_schema>{&quot;properties&quot;:{&quot;query&quot;:{&quot;type&quot;:&quot;string&quot;}},&quot;type&quot;:&quot;object&quot;}</input_schema>",
         "Call a listed tool directly with CallMcpTool without calling GetMcpTools first.",
+    ] {
+        assert!(
+            context_text.contains(expected),
+            "missing request context section: {expected}"
+        );
+    }
+    assert!(!context_text.contains("complete skill body"));
+    assert!(!context_text.contains("complete MCP server instructions"));
+    for expected in [
         "Ask mode is active.",
         "<user_query>\nexplain this\n</user_query>",
     ] {
@@ -117,9 +153,65 @@ async fn current_mode_and_referenced_context_are_consumed_by_one_runtime_message
             "missing runtime section: {expected}"
         );
     }
-    assert!(!text.contains("complete skill body"));
-    assert!(!text.contains("complete MCP server instructions"));
+    assert!(!text.contains("<rules>"));
+    assert!(!text.contains("<mcp_meta_tools>"));
     assert!(text.contains("/workspace/src/main.rs"));
+
+    let second = registry.get_or_create("ask-request-2").await.unwrap();
+    let mut second_output = second.subscribe();
+    second
+        .command(CursorCommand::Append {
+            seqno: 0,
+            message: Box::new(run_request_with_state(
+                references(&store).await,
+                checkpoint.expect("first Run must publish a checkpoint"),
+            )),
+        })
+        .await
+        .unwrap();
+    let mut second_seqno = 1;
+    loop {
+        let frame = tokio::time::timeout(std::time::Duration::from_secs(5), second_output.recv())
+            .await
+            .unwrap()
+            .unwrap();
+        let (flags, payload) = connect::decode_frames(&frame).unwrap().pop().unwrap();
+        if flags & connect::END_STREAM_FLAG != 0 {
+            break;
+        }
+        let message = pb::AgentServerMessage::decode(payload).unwrap();
+        if let Some(pb::agent_server_message::Message::KvServerMessage(kv)) = message.message {
+            second
+                .command(CursorCommand::Append {
+                    seqno: second_seqno,
+                    message: Box::new(kv_ack(kv.id)),
+                })
+                .await
+                .unwrap();
+            second_seqno += 1;
+        }
+    }
+
+    let requests = provider.requests();
+    assert_eq!(requests.len(), 2);
+    assert_eq!(
+        requests[1].prompt.instructions, requests[0].prompt.instructions,
+        "unchanged request context must not rewrite the system prompt"
+    );
+    assert_eq!(
+        requests[1].history[..requests[0].history.len()],
+        requests[0].history,
+        "the previous provider history must remain an exact prefix"
+    );
+    assert_eq!(
+        requests[1]
+            .history
+            .iter()
+            .filter(|message| message.message_id.starts_with("request-context:"))
+            .count(),
+        1,
+        "identical request context must not be appended again"
+    );
 }
 
 #[tokio::test]
@@ -252,10 +344,10 @@ async fn missing_context_parts_use_current_cursor_response_and_cache_its_content
     let requests = provider.requests();
     assert_eq!(requests.len(), 1);
     let ProjectedContent::Parts(parts) = &requests[0].history[0].content else {
-        panic!("runtime message must use typed parts")
+        panic!("request context message must use typed parts")
     };
     let [ContentPart::Text { text }] = parts.as_slice() else {
-        panic!("this fixture has no images")
+        panic!("request context message must contain one text part")
     };
     assert!(text.contains("<mcp_meta_tool_server name=\"live-mcp\" identifier=\"live-mcp\">"));
     assert!(text.contains("<mcp_tool name=\"current-tool\">"));
@@ -447,6 +539,31 @@ fn run_request(references: References) -> pb::AgentClientMessage {
             },
         )),
     }
+}
+
+fn run_request_with_state(
+    references: References,
+    state: pb::ConversationStateStructure,
+) -> pb::AgentClientMessage {
+    let mut message = run_request(references);
+    let Some(pb::agent_client_message::Message::RunRequest(request)) = message.message.as_mut()
+    else {
+        unreachable!("run_request always returns a RunRequest")
+    };
+    request.conversation_state = Some(state);
+    let Some(pb::conversation_action::Action::UserMessageAction(action)) = request
+        .action
+        .as_mut()
+        .and_then(|action| action.action.as_mut())
+    else {
+        unreachable!("run_request always contains a UserMessageAction")
+    };
+    action
+        .user_message
+        .as_mut()
+        .expect("run_request always contains a UserMessage")
+        .message_id = "wire-user-2".into();
+    message
 }
 
 fn kv_ack(id: u32) -> pb::AgentClientMessage {

@@ -460,11 +460,8 @@ impl RunEngine {
             .iter()
             .map(|message| message.message_id.as_str())
             .collect::<HashSet<_>>();
-        let compactable = messages
-            .iter()
-            .filter(|message| !current_ids.contains(message.message_id.as_str()))
-            .cloned()
-            .collect::<Vec<_>>();
+        let (compactable, retained_request_context) =
+            auto_compaction_partition(messages, &current_ids);
         if compactable.is_empty() {
             return Ok((revision, None));
         }
@@ -533,7 +530,8 @@ impl RunEngine {
             },
             runtime_event_id: Some(event_id),
         };
-        let mut replacement = vec![summary_message];
+        let mut replacement = retained_request_context.into_iter().collect::<Vec<_>>();
+        replacement.push(summary_message);
         replacement.extend(prepared.initial_messages.iter().cloned());
         let revision = self
             .store
@@ -563,6 +561,29 @@ impl RunEngine {
             .map_err(|_| client_failure())?;
         Ok((revision, compaction_usage))
     }
+}
+
+fn auto_compaction_partition(
+    messages: &[CanonicalMessage],
+    current_ids: &HashSet<&str>,
+) -> (Vec<CanonicalMessage>, Option<CanonicalMessage>) {
+    let latest_request_context = messages
+        .iter()
+        .rposition(|message| message.message_id.starts_with("request-context:"));
+    let compactable = messages
+        .iter()
+        .enumerate()
+        .filter(|(index, message)| {
+            Some(*index) != latest_request_context
+                && !current_ids.contains(message.message_id.as_str())
+        })
+        .map(|(_, message)| message.clone())
+        .collect();
+    let retained = latest_request_context
+        .and_then(|index| messages.get(index))
+        .filter(|message| !current_ids.contains(message.message_id.as_str()))
+        .cloned();
+    (compactable, retained)
 }
 
 fn should_auto_compact(prepared: &PreparedRun, messages: &[CanonicalMessage]) -> bool {
@@ -724,7 +745,7 @@ fn failure_message(failure: &RunFailure) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::{estimate_context_tokens, hydrate_tool_images};
+    use super::{auto_compaction_partition, estimate_context_tokens, hydrate_tool_images};
     use crate::{
         model::{
             CanonicalMessage, ContentPart, Origin, ProjectedContent, ProjectedMessage, PromptSpec,
@@ -732,6 +753,7 @@ mod tests {
         },
         store::Store,
     };
+    use std::collections::HashSet;
 
     #[test]
     fn context_estimate_grows_with_prompt_history() {
@@ -754,6 +776,42 @@ mod tests {
 
         assert!(estimate_context_tokens(&prompt, &long) > 25_000);
         assert!(estimate_context_tokens(&prompt, &long) > estimate_context_tokens(&prompt, &short));
+    }
+
+    #[test]
+    fn auto_compaction_preserves_only_the_latest_request_context() {
+        let first_context = CanonicalMessage::text(
+            "request-context:first",
+            Role::User,
+            Origin::Prompt,
+            "old rules",
+        );
+        let old_runtime =
+            CanonicalMessage::text("runtime:first", Role::User, Origin::Runtime, "old query");
+        let latest_context = CanonicalMessage::text(
+            "request-context:second",
+            Role::User,
+            Origin::Prompt,
+            "new rules",
+        );
+        let current_runtime = CanonicalMessage::text(
+            "runtime:current",
+            Role::User,
+            Origin::Runtime,
+            "current query",
+        );
+        let messages = vec![
+            first_context.clone(),
+            old_runtime.clone(),
+            latest_context.clone(),
+            current_runtime,
+        ];
+        let current_ids = HashSet::from(["runtime:current"]);
+
+        let (compactable, retained) = auto_compaction_partition(&messages, &current_ids);
+
+        assert_eq!(compactable, vec![first_context, old_runtime]);
+        assert_eq!(retained, Some(latest_context));
     }
 
     #[tokio::test]

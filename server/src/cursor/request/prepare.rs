@@ -192,6 +192,20 @@ pub(crate) async fn prepare(
         }
         _ => None,
     };
+    let request_context_message = match event_id.as_deref() {
+        Some(event_id) if !compacting && !background_completion => {
+            let message_id = format!("request-context:{event_id}");
+            match store.message(&conversation_id, &message_id).await? {
+                Some(message) => Some(message),
+                None => runtime::compile_request_context(
+                    event_id,
+                    &request_context,
+                    base_messages.as_deref().unwrap_or_default(),
+                )?,
+            }
+        }
+        _ => None,
+    };
     let initial_messages = if compacting {
         Vec::new()
     } else {
@@ -209,21 +223,27 @@ pub(crate) async fn prepare(
                 turn_user = Some(user);
                 vec![message]
             }
-            (Some(user), Some(event_id)) => match existing_runtime {
-                Some(message) => vec![message],
-                None => vec![
-                    runtime::compile(
-                        event_id,
-                        checkpoint_mode,
-                        &user,
-                        &request_context,
-                        &action_context,
-                        compiler,
-                        blob_sync,
-                    )
-                    .await?,
-                ],
-            },
+            (Some(user), Some(event_id)) => {
+                let runtime = match existing_runtime {
+                    Some(message) => message,
+                    None => {
+                        runtime::compile(
+                            event_id,
+                            checkpoint_mode,
+                            &user,
+                            &request_context,
+                            &action_context,
+                            compiler,
+                            blob_sync,
+                        )
+                        .await?
+                    }
+                };
+                request_context_message
+                    .into_iter()
+                    .chain(std::iter::once(runtime))
+                    .collect()
+            }
             (None, None) => Vec::new(),
             _ => {
                 return Err(Error::Protocol(
