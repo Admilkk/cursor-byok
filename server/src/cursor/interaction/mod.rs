@@ -66,6 +66,12 @@ pub fn thinking_completed(elapsed: Duration) -> pb::AgentServerMessage {
     ))
 }
 
+pub fn heartbeat() -> pb::AgentServerMessage {
+    server_interaction(pb::interaction_update::Message::Heartbeat(
+        pb::HeartbeatUpdate {},
+    ))
+}
+
 pub fn arguments_delta(call: &ToolCall, delta: &str) -> Result<pb::AgentServerMessage> {
     Ok(server_interaction(
         pb::interaction_update::Message::PartialToolCall(pb::PartialToolCallUpdate {

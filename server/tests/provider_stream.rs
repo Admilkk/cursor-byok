@@ -330,6 +330,37 @@ async fn openai_responses_raw_stream_does_not_invent_reasoning_effort() {
 }
 
 #[tokio::test]
+async fn openai_responses_streams_openrouter_reasoning_text_events() {
+    let (base_url, _requests, server) = fixture_server(
+        "/v1/responses",
+        concat!(
+            "data: {\"type\":\"response.reasoning_text.delta\",\"delta\":\"still working\"}\n\n",
+            "data: {\"type\":\"response.reasoning_text.done\"}\n\n",
+            "data: {\"type\":\"response.completed\",\"response\":{}}\n\n",
+        ),
+    )
+    .await;
+    let provider = OpenAiResponsesProvider::new(
+        reqwest::Client::new(),
+        config(ProviderKind::OpenAiResponses, base_url, None),
+    );
+
+    let events = collect(provider.stream(invocation(), CancellationToken::new())).await;
+    server.abort();
+
+    assert!(events
+        .iter()
+        .any(|event| matches!(event, ModelEvent::ThinkingStart)));
+    assert!(events.iter().any(
+        |event| matches!(event, ModelEvent::ThinkingDelta(delta) if delta == "still working")
+    ));
+    assert!(events
+        .iter()
+        .any(|event| matches!(event, ModelEvent::ThinkingEnd)));
+    assert_eq!(events.last(), Some(&ModelEvent::Done(FinishReason::Stop)));
+}
+
+#[tokio::test]
 async fn openai_responses_reasoning_item_done_closes_an_open_summary() {
     let (base_url, _requests, server) = fixture_server(
         "/v1/responses",

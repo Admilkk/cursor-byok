@@ -527,7 +527,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 109,
+          "line": 87,
           "column": 27
         }
       ]
@@ -740,8 +740,8 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 67,
-          "column": 24
+          "line": 51,
+          "column": 29
         }
       ]
     },
@@ -754,7 +754,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 105,
+          "line": 83,
           "column": 13
         }
       ]
@@ -766,7 +766,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 220,
+          "line": 223,
           "column": 14
         }
       ]
@@ -805,7 +805,7 @@
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 221,
+          "line": 224,
           "column": 19
         },
         {
@@ -956,7 +956,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 222,
+          "line": 225,
           "column": 20
         }
       ]
@@ -1243,18 +1243,6 @@
         }
       ]
     },
-    "4510b63fdcf7451f": {
-      "source": "Cursor 助手 v0.1.0",
-      "kind": "text",
-      "placeholders": [],
-      "refs": [
-        {
-          "file": "layouts/AppHeader.tsx",
-          "line": 20,
-          "column": 18
-        }
-      ]
-    },
     "470049252e54de6a": {
       "source": "成功占比：{rate}",
       "kind": "template",
@@ -1304,7 +1292,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 104,
+          "line": 82,
           "column": 13
         }
       ]
@@ -1328,7 +1316,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 71,
+          "line": 73,
           "column": 48
         }
       ]
@@ -1362,7 +1350,7 @@
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 194,
+          "line": 196,
           "column": 67
         }
       ]
@@ -1553,6 +1541,20 @@
         }
       ]
     },
+    "5d59857bf039cac9": {
+      "source": "Cursor 助手 v{version}",
+      "kind": "template",
+      "placeholders": [
+        "version"
+      ],
+      "refs": [
+        {
+          "file": "layouts/AppHeader.tsx",
+          "line": 31,
+          "column": 18
+        }
+      ]
+    },
     "5f8d556a9c47da3c": {
       "source": "已关闭开机启动",
       "kind": "text",
@@ -1560,7 +1562,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 50,
+          "line": 40,
           "column": 40
         }
       ]
@@ -1572,7 +1574,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 226,
+          "line": 229,
           "column": 11
         }
       ]
@@ -1696,7 +1698,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 102,
+          "line": 80,
           "column": 18
         }
       ]
@@ -1775,7 +1777,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 74,
+          "line": 76,
           "column": 47
         }
       ]
@@ -1838,8 +1840,8 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 67,
-          "column": 76
+          "line": 51,
+          "column": 78
         }
       ]
     },
@@ -1984,7 +1986,7 @@
       "refs": [
         {
           "file": "App.tsx",
-          "line": 53,
+          "line": 52,
           "column": 19
         }
       ]
@@ -2061,7 +2063,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 112,
+          "line": 91,
           "column": 37
         }
       ]
@@ -2114,12 +2116,12 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 90,
+          "line": 68,
           "column": 18
         },
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 96,
+          "line": 74,
           "column": 16
         }
       ]
@@ -2240,7 +2242,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 228,
+          "line": 231,
           "column": 16
         }
       ]
@@ -2295,7 +2297,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 69,
+          "line": 71,
           "column": 39
         }
       ]
@@ -2523,7 +2525,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 87,
+          "line": 65,
           "column": 29
         }
       ]
@@ -2734,7 +2736,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 50,
+          "line": 40,
           "column": 25
         }
       ]
@@ -2746,7 +2748,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 109,
+          "line": 87,
           "column": 39
         }
       ]
@@ -2796,12 +2798,12 @@
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 241,
+          "line": 244,
           "column": 64
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 241,
+          "line": 244,
           "column": 125
         }
       ]
@@ -3020,7 +3022,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 233,
+          "line": 236,
           "column": 24
         }
       ]
@@ -3338,7 +3340,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 91,
+          "line": 69,
           "column": 17
         }
       ]
@@ -3408,7 +3410,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 180,
+          "line": 182,
           "column": 54
         }
       ]
@@ -3605,7 +3607,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 70,
+          "line": 72,
           "column": 44
         }
       ]
@@ -3788,7 +3790,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 75,
+          "line": 77,
           "column": 53
         },
         {
@@ -4021,7 +4023,7 @@
       "refs": [
         {
           "file": "components/settings/AppLifecycleSettingsCard.tsx",
-          "line": 112,
+          "line": 91,
           "column": 25
         }
       ]
@@ -4113,7 +4115,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 72,
+          "line": 74,
           "column": 48
         }
       ]

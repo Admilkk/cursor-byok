@@ -10,8 +10,8 @@ import { CursorSettingsPage } from "./pages/CursorSettingsPage";
 import { HomePage } from "./pages/HomePage";
 import { ProvidersPage } from "./pages/ProvidersPage";
 import { SettingsPage } from "./pages/SettingsPage";
-import { checkForUpdate, hasNativeAppLifecycle } from "./native/appLifecycle";
 import { useAppStore } from "./store/appStore";
+import { updateStore } from "./store/updateStore";
 
 export function App() {
   return (
@@ -47,11 +47,9 @@ function AppMessages() {
   }, [error, showMessage]);
 
   useEffect(() => {
-    if (!hasNativeAppLifecycle()) return;
-    void checkForUpdate().then(async (update) => {
-      if (!update) return;
-      showMessage(t("发现新版本 {version}，可在设置中安装", { version: update.version }), { duration: 6_000 });
-      await update.close();
+    void updateStore.check().then((version) => {
+      if (!version) return;
+      showMessage(t("发现新版本 {version}，可在设置中安装", { version }), { duration: 6_000 });
     }).catch(() => {
       // Startup checks are best-effort; manual checks in Settings report errors.
     });

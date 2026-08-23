@@ -147,6 +147,54 @@ async fn registry_shutdown_cancels_runs_and_closes_run_sse_outputs() {
 }
 
 #[tokio::test]
+async fn client_heartbeat_returns_a_server_protocol_heartbeat() {
+    let (_directory, store) = fixtures::temp_store().await;
+    let assets = PromptAssets::load(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("prompt/cursor")
+            .as_path(),
+    )
+    .unwrap();
+    let registry = CursorSessionRegistry::new(
+        store,
+        Arc::new(fake_provider::FakeProvider::default()),
+        PromptCompiler::new(assets),
+        Default::default(),
+    );
+    let handle = registry.get_or_create("heartbeat-run").await.unwrap();
+    let mut output = handle.subscribe();
+
+    handle
+        .command(CursorCommand::Append {
+            seqno: 0,
+            message: Box::new(pb::AgentClientMessage {
+                message: Some(pb::agent_client_message::Message::ClientHeartbeat(
+                    pb::ClientHeartbeat {},
+                )),
+            }),
+        })
+        .await
+        .unwrap();
+
+    let frame = tokio::time::timeout(std::time::Duration::from_secs(1), output.recv())
+        .await
+        .unwrap()
+        .unwrap();
+    let (_, payload) = connect::decode_frames(&frame).unwrap().pop().unwrap();
+    let message = pb::AgentServerMessage::decode(payload).unwrap();
+    assert!(matches!(
+        message.message,
+        Some(pb::agent_server_message::Message::InteractionUpdate(
+            pb::InteractionUpdate {
+                message: Some(pb::interaction_update::Message::Heartbeat(_)),
+            }
+        ))
+    ));
+
+    registry.shutdown().await;
+}
+
+#[tokio::test]
 async fn runtime_user_message_action_aborts_active_exec_before_canceled_end_stream() {
     let (_directory, store) = fixtures::temp_store().await;
     let provider = fake_provider::FakeProvider::default();

@@ -18,6 +18,7 @@ import { useMessage } from "../components/ui/message";
 import { VirtualList } from "../components/virtual/VirtualList";
 import { useI18n } from "../i18n/store";
 import { appStore, useAppStore } from "../store/appStore";
+import { useUpdateStore } from "../store/updateStore";
 import styles from "./AppLayout.module.scss";
 import { PageActionsTarget } from "./PageActions";
 
@@ -43,6 +44,7 @@ function loadStoredAdIds(key: string): Set<string> {
 
 export function AppLayout() {
   const { busy } = useAppStore();
+  const { availableVersion } = useUpdateStore();
   const { locale } = useI18n();
   const message = useMessage();
   const location = useLocation();
@@ -198,7 +200,7 @@ export function AppLayout() {
                 ? <Icon src={item.icon} size="1.3em" />
                 : <Icon icon={item.icon} size="1.3em" />}
               <span>{item.label}</span>
-              {!tutorialRead && <span className={styles.menuUnreadDot} aria-hidden="true" />}
+              {!tutorialRead && <span className={styles.menuIndicatorDot} aria-hidden="true" />}
             </button>
           </div>
           : <div className={styles.navigationRow} key={item.path}>
@@ -207,6 +209,7 @@ export function AppLayout() {
                 ? <Icon src={item.icon} size="1.3em" />
                 : <Icon icon={item.icon} size="1.3em" />}
               <span>{item.label}</span>
+              {item.path === "/settings" && availableVersion && <span className={styles.menuIndicatorDot} aria-hidden="true" />}
             </NavLink>
           </div>}
         </VirtualList>

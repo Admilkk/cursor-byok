@@ -140,11 +140,11 @@ impl Provider for OpenAiResponsesProvider {
                         }
                         if text_open { text_open = false; yield ModelEvent::TextEnd; }
                     }
-                    "response.reasoning_summary_text.delta" => {
+                    "response.reasoning_summary_text.delta" | "response.reasoning_text.delta" => {
                         if !thinking_open { thinking_open = true; yield ModelEvent::ThinkingStart; }
                         if let Some(delta) = value.get("delta").and_then(Value::as_str) { yield ModelEvent::ThinkingDelta(delta.into()); }
                     }
-                    "response.reasoning_summary_text.done" => {
+                    "response.reasoning_summary_text.done" | "response.reasoning_text.done" => {
                         if thinking_open { thinking_open = false; yield ModelEvent::ThinkingEnd; }
                     }
                     "response.output_item.added" => {
