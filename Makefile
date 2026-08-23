@@ -1,0 +1,28 @@
+.PHONY: check dev-web dev-server dev-desktop build-web build-server build-desktop build-docker
+
+check:
+	cargo fmt --all -- --check
+	cargo clippy --workspace --all-targets -- -D warnings
+	cargo test --workspace --all-targets
+	npm --prefix apps/desktop run check
+
+dev-web:
+	npm --prefix apps/desktop run dev:web
+
+dev-server:
+	CURSOR_CONSOLE_DIR=apps/desktop/dist cargo run --package cursor-server --bin cursor-server
+
+dev-desktop:
+	npm --prefix apps/desktop run tauri:dev
+
+build-web:
+	npm --prefix apps/desktop run build
+
+build-server:
+	cargo build --release --package cursor-server --bin cursor-server
+
+build-desktop:
+	npm --prefix apps/desktop run tauri:build
+
+build-docker:
+	docker build --tag cursor-byok:local .

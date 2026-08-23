@@ -1,0 +1,3747 @@
+{
+  "entries": {
+    "00929f23850e4ff0": {
+      "source": "成功调用：{count}",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 103,
+          "column": 5
+        }
+      ]
+    },
+    "01f3e69a5a9b2c9b": {
+      "source": "访问模型服务所需的密钥。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 75,
+          "column": 42
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 26,
+          "column": 102
+        }
+      ]
+    },
+    "025b70bde54ed1ef": {
+      "source": "模型是否允许被 Cursor 选择使用。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 92,
+          "column": 39
+        }
+      ]
+    },
+    "028a4de61bff743d": {
+      "source": "普通输入：{tokens} × ${price}/1M = {cost}",
+      "kind": "template",
+      "placeholders": [
+        "tokens",
+        "price",
+        "cost"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 123,
+          "column": 5
+        }
+      ]
+    },
+    "03ff62ab4b818492": {
+      "source": "缓存写入：{tokens} × ${price}/1M = {cost}",
+      "kind": "template",
+      "placeholders": [
+        "tokens",
+        "price",
+        "cost"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 138,
+          "column": 5
+        }
+      ]
+    },
+    "051836569928a9f9": {
+      "source": "编辑",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 37,
+          "column": 8
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 145,
+          "column": 82
+        }
+      ]
+    },
+    "0580e0a99a6f1afc": {
+      "source": "工件数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 70,
+          "column": 54
+        }
+      ]
+    },
+    "05912a17829faacc": {
+      "source": "所有调用记录和详细追踪数据都会被删除。供应商、模型、CA 和应用设置不会受到影响，此操作无法撤销。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 231,
+          "column": 14
+        }
+      ]
+    },
+    "076832c1b2de22c3": {
+      "source": "缓存写入：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 115,
+          "column": 5
+        }
+      ]
+    },
+    "07879e064ae16542": {
+      "source": "输出推算：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 112,
+          "column": 5
+        }
+      ]
+    },
+    "07ec86e0f1d44f91": {
+      "source": "创建时间",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 23,
+          "column": 31
+        }
+      ]
+    },
+    "08d742566ffc9fa3": {
+      "source": "确定要清理所有统计数据吗？",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 222,
+          "column": 16
+        }
+      ]
+    },
+    "099008ea7a42ebd1": {
+      "source": "自定义 Headers 的值必须都是字符串",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 156,
+          "column": 89
+        }
+      ]
+    },
+    "09ebc2643631ba25": {
+      "source": "价值估算",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 171,
+          "column": 40
+        }
+      ]
+    },
+    "0a5f9a892960a00a": {
+      "source": "更新时间",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 24,
+          "column": 31
+        }
+      ]
+    },
+    "0b96da34f6fbdd3b": {
+      "source": "缓存读取：{tokens} × ${price}/1M = {cost}",
+      "kind": "template",
+      "placeholders": [
+        "tokens",
+        "price",
+        "cost"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 133,
+          "column": 5
+        }
+      ]
+    },
+    "0bd20614caf56647": {
+      "source": "支持选择或输入多个模型；批量添加时显示名称默认使用对应模型名称。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 81,
+          "column": 119
+        }
+      ]
+    },
+    "0c2fee621d406ea7": {
+      "source": "选择已有上游，或创建一个新的上游。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 67,
+          "column": 51
+        }
+      ]
+    },
+    "0c70665b6eb65f1a": {
+      "source": "否",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 28,
+          "column": 61
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 44,
+          "column": 42
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 53,
+          "column": 72
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 138,
+          "column": 51
+        }
+      ]
+    },
+    "0c72229b7db0e1a9": {
+      "source": "模型输出",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 108,
+          "column": 47
+        },
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 172,
+          "column": 15
+        }
+      ]
+    },
+    "0d5e2bdb15579fc4": {
+      "source": "消息数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 42,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 127,
+          "column": 15
+        }
+      ]
+    },
+    "0e41f8e3d59ec47b": {
+      "source": "存储管理",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 205,
+          "column": 26
+        }
+      ]
+    },
+    "0ec1e85b0c3cfa65": {
+      "source": "调用详情",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CallDetailsPage.tsx",
+          "line": 32,
+          "column": 28
+        },
+        {
+          "file": "pages/CallDetailsPage.tsx",
+          "line": 36,
+          "column": 41
+        }
+      ]
+    },
+    "124be3f86f197802": {
+      "source": "Token 消耗",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 164,
+          "column": 40
+        }
+      ]
+    },
+    "12ae77e6202d063e": {
+      "source": "自定义 Headers",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 155,
+          "column": 36
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 91,
+          "column": 36
+        }
+      ]
+    },
+    "12b86e89701b0241": {
+      "source": "输入模型名称后按 Enter 添加",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Select.tsx",
+          "line": 199,
+          "column": 55
+        }
+      ]
+    },
+    "13a9ac7a68c5fd96": {
+      "source": "CA 仅保存在本机，用于安全解析 Cursor 的 HTTPS 请求。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 22,
+          "column": 107
+        }
+      ]
+    },
+    "13b61c5f697b6700": {
+      "source": "缓存命中率",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 150,
+          "column": 40
+        }
+      ]
+    },
+    "146da2e2a991493e": {
+      "source": "获取中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 82,
+          "column": 234
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 83,
+          "column": 233
+        }
+      ]
+    },
+    "15d76f1c211cc140": {
+      "source": "留空表示保留当前 API Key。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 26,
+          "column": 77
+        }
+      ]
+    },
+    "168e845a86bc3703": {
+      "source": "添加模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 38,
+          "column": 59
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 120,
+          "column": 40
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 120,
+          "column": 119
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 123,
+          "column": 63
+        }
+      ]
+    },
+    "16aa4ae1427fccce": {
+      "source": "自定义 Headers JSON",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 89,
+          "column": 56
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 89,
+          "column": 141
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 27,
+          "column": 52
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 27,
+          "column": 148
+        }
+      ]
+    },
+    "16d0d7e2b332af72": {
+      "source": "总调用：{count}",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 102,
+          "column": 5
+        }
+      ]
+    },
+    "1813d362a82fd437": {
+      "source": "最大化窗口",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/WindowControls.tsx",
+          "line": 38,
+          "column": 49
+        }
+      ]
+    },
+    "18d25065b3f7db39": {
+      "source": "请求完整地址不能为空",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 79,
+          "column": 86
+        }
+      ]
+    },
+    "19658d9fa9aa8de4": {
+      "source": "安装中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 109,
+          "column": 27
+        }
+      ]
+    },
+    "1a3f0617d6de8e52": {
+      "source": "用户名",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 59,
+          "column": 24
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 74,
+          "column": 50
+        }
+      ]
+    },
+    "1ae6b0a0f8266382": {
+      "source": "关闭窗口",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/WindowControls.tsx",
+          "line": 62,
+          "column": 19
+        },
+        {
+          "file": "layouts/WindowControls.tsx",
+          "line": 63,
+          "column": 14
+        }
+      ]
+    },
+    "1b5932b8946d2d68": {
+      "source": "删除模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 98,
+          "column": 32
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 98,
+          "column": 119
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 133,
+          "column": 44
+        }
+      ]
+    },
+    "1b7d5b1a9315fc64": {
+      "source": "计算中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 209,
+          "column": 60
+        }
+      ]
+    },
+    "1c6926877b1bbfb2": {
+      "source": "总请求：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 110,
+          "column": 5
+        }
+      ]
+    },
+    "1cb7e646ac883fb2": {
+      "source": "代理端口",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 52,
+          "column": 42
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 150,
+          "column": 22
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 177,
+          "column": 58
+        }
+      ]
+    },
+    "1cdde778cfe6a130": {
+      "source": "公式：缓存读取 /（缓存读取 + 非缓存输入）",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 93,
+          "column": 5
+        }
+      ]
+    },
+    "1cef73a53d7ad0f2": {
+      "source": "例如：OpenAI",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 19,
+          "column": 85
+        }
+      ]
+    },
+    "1f9b46e61efcccb5": {
+      "source": "筛选项：{label}，{summary}",
+      "kind": "template",
+      "placeholders": [
+        "label",
+        "summary"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 74,
+          "column": 21
+        }
+      ]
+    },
+    "21296ab18ad9af25": {
+      "source": "额外参数 JSON",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 88,
+          "column": 56
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 88,
+          "column": 123
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 28,
+          "column": 52
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 28,
+          "column": 119
+        },
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 22,
+          "column": 29
+        }
+      ]
+    },
+    "22c6b4eb4caee6ae": {
+      "source": "代理设置已保存",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 107,
+          "column": 15
+        }
+      ]
+    },
+    "23e49479e15e6770": {
+      "source": "发现新版本 {version}",
+      "kind": "template",
+      "placeholders": [
+        "version"
+      ],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 67,
+          "column": 24
+        }
+      ]
+    },
+    "29585d7193539200": {
+      "source": "当前版本 {version}",
+      "kind": "template",
+      "placeholders": [
+        "version"
+      ],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 105,
+          "column": 13
+        }
+      ]
+    },
+    "2a2773134a829016": {
+      "source": "按历史 LLM 调用记录汇总，进行中的调用不计入。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 100,
+          "column": 5
+        }
+      ]
+    },
+    "2cd0f3be8738a86c": {
+      "source": "取消",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 115,
+          "column": 105
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 32,
+          "column": 66
+        },
+        {
+          "file": "components/ui/Modal.tsx",
+          "line": 7,
+          "column": 92
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 133,
+          "column": 67
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 141,
+          "column": 81
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 224,
+          "column": 21
+        }
+      ]
+    },
+    "2d30c2a98ebb5278": {
+      "source": "当前：{rate}",
+      "kind": "template",
+      "placeholders": [
+        "rate"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 92,
+          "column": 5
+        }
+      ]
+    },
+    "2eb2bf7c6597ab9a": {
+      "source": "详细记录",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 44,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 137,
+          "column": 15
+        }
+      ]
+    },
+    "2f1b67cdaa23351a": {
+      "source": "自定义请求完整地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 85,
+          "column": 58
+        }
+      ]
+    },
+    "2f4a361f878176d1": {
+      "source": "{label} 必须是有效 JSON",
+      "kind": "template",
+      "placeholders": [
+        "label"
+      ],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 141,
+          "column": 70
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 98,
+          "column": 70
+        }
+      ]
+    },
+    "2f5f1d6fbfb061ed": {
+      "source": "未设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 75,
+          "column": 134
+        }
+      ]
+    },
+    "2f6416a2c424856b": {
+      "source": "最终请求地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 24,
+          "column": 6
+        }
+      ]
+    },
+    "2f7dec3be28d7597": {
+      "source": "已选择 {count} 个",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/Select.tsx",
+          "line": 180,
+          "column": 65
+        }
+      ]
+    },
+    "2f9daa828907b93f": {
+      "source": "删除",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 133,
+          "column": 89
+        }
+      ]
+    },
+    "378bb0eec39fa8a2": {
+      "source": "最后一页",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 27,
+          "column": 30
+        },
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 27,
+          "column": 93
+        }
+      ]
+    },
+    "37cb98ff4d5dcfcc": {
+      "source": "成功 {successful} / 异常 {failed}",
+      "kind": "template",
+      "placeholders": [
+        "successful",
+        "failed"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 157,
+          "column": 46
+        }
+      ]
+    },
+    "393df9bb13ea4900": {
+      "source": "命中",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/CacheHitRateChart.tsx",
+          "line": 60,
+          "column": 14
+        }
+      ]
+    },
+    "393e1241552b1870": {
+      "source": "请求",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 53,
+          "column": 32
+        }
+      ]
+    },
+    "398f8e6c6f0a0b97": {
+      "source": "继续选择或输入",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Select.tsx",
+          "line": 181,
+          "column": 68
+        }
+      ]
+    },
+    "39f52eee100131d7": {
+      "source": "缓存输入",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 106,
+          "column": 50
+        },
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 154,
+          "column": 15
+        }
+      ]
+    },
+    "3a0fb74abe2460b6": {
+      "source": "分块数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 62,
+          "column": 39
+        }
+      ]
+    },
+    "3a3f595df70ec8ff": {
+      "source": "清理存储空间",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 216,
+          "column": 14
+        }
+      ]
+    },
+    "3a5040b68abf75f9": {
+      "source": "全选",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 122,
+          "column": 96
+        }
+      ]
+    },
+    "3bd5b3f538e3270a": {
+      "source": "新建上游",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 68,
+          "column": 30
+        }
+      ]
+    },
+    "3c94b4c75940c178": {
+      "source": "输入 Token",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/TokenTrendChart.tsx",
+          "line": 16,
+          "column": 15
+        }
+      ]
+    },
+    "3cfae5728b92b334": {
+      "source": "Token 用量：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/charts/ContributionCalendarChart.tsx",
+          "line": 267,
+          "column": 18
+        }
+      ]
+    },
+    "3da0bf1610ff5db5": {
+      "source": "推荐内容",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ads/AdMenu.tsx",
+          "line": 15,
+          "column": 56
+        }
+      ]
+    },
+    "3fd47edce45b3603": {
+      "source": "关闭",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 126,
+          "column": 71
+        }
+      ]
+    },
+    "42655ed8e4108ae2": {
+      "source": "输入（非缓存）",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 105,
+          "column": 46
+        },
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 145,
+          "column": 15
+        }
+      ]
+    },
+    "42a1d9e5b037c210": {
+      "source": "字节数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 55,
+          "column": 39
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 62,
+          "column": 68
+        }
+      ]
+    },
+    "42aa8e01e98c0d8c": {
+      "source": "总耗时",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/LatencyChart.tsx",
+          "line": 17,
+          "column": 15
+        }
+      ]
+    },
+    "43cb41d62de2d179": {
+      "source": "代理需要认证",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 55,
+          "column": 59
+        }
+      ]
+    },
+    "470049252e54de6a": {
+      "source": "成功占比：{rate}",
+      "kind": "template",
+      "placeholders": [
+        "rate"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 105,
+          "column": 5
+        }
+      ]
+    },
+    "48b970b568a7f8f9": {
+      "source": "代理设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 41,
+          "column": 29
+        }
+      ]
+    },
+    "48d8db17bae06246": {
+      "source": "共 {count} 条",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 20,
+          "column": 12
+        }
+      ]
+    },
+    "492042ed1fdc29ed": {
+      "source": "版本 {version} 可以安装",
+      "kind": "template",
+      "placeholders": [
+        "version"
+      ],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 104,
+          "column": 13
+        }
+      ]
+    },
+    "4927a53bcc886afb": {
+      "source": "加载中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 69,
+          "column": 135
+        }
+      ]
+    },
+    "497c85690c4cc0fc": {
+      "source": "暂无数据",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 33,
+          "column": 27
+        },
+        {
+          "file": "components/ui/DataTable.tsx",
+          "line": 15,
+          "column": 77
+        }
+      ]
+    },
+    "4d0680f9efaef147": {
+      "source": "未读",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ads/AdMenu.tsx",
+          "line": 25,
+          "column": 97
+        }
+      ]
+    },
+    "4eafa9e925b30bcd": {
+      "source": "自定义",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 90,
+          "column": 9
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 29,
+          "column": 93
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 46,
+          "column": 169
+        }
+      ]
+    },
+    "5228358a6db59fe7": {
+      "source": "如：现在、2026-08-23 18:00",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 111,
+          "column": 70
+        }
+      ]
+    },
+    "54644705e9c61009": {
+      "source": "端口设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 139,
+          "column": 26
+        }
+      ]
+    },
+    "54c53e5fe791d1f3": {
+      "source": "初始化 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 23,
+          "column": 222
+        }
+      ]
+    },
+    "550eddc3c7fefa99": {
+      "source": "推广",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ads/FloatingAd.tsx",
+          "line": 63,
+          "column": 48
+        }
+      ]
+    },
+    "555737734a6371e6": {
+      "source": "删除上游",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 27,
+          "column": 30
+        },
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 27,
+          "column": 117
+        }
+      ]
+    },
+    "56432ba297009bdc": {
+      "source": "请先初始化 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 120,
+          "column": 52
+        }
+      ]
+    },
+    "5ae715656ffbc35d": {
+      "source": "合并到该上游所有模型的请求体。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 88,
+          "column": 78
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 28,
+          "column": 74
+        }
+      ]
+    },
+    "5c55a67935af8f45": {
+      "source": "全部",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 56,
+          "column": 40
+        }
+      ]
+    },
+    "5f8d556a9c47da3c": {
+      "source": "已关闭开机启动",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 50,
+          "column": 40
+        }
+      ]
+    },
+    "5fd2ec5a6e9b654c": {
+      "source": "合计：{cost}",
+      "kind": "template",
+      "placeholders": [
+        "cost"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 144,
+          "column": 5
+        }
+      ]
+    },
+    "6078a681a306930d": {
+      "source": "缓存写入",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 107,
+          "column": 51
+        },
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 163,
+          "column": 15
+        }
+      ]
+    },
+    "61a4c7bac12dc125": {
+      "source": "异常调用：{count}",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 104,
+          "column": 5
+        }
+      ]
+    },
+    "61c7d1f758b647d5": {
+      "source": "调用信息",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 50,
+          "column": 29
+        }
+      ]
+    },
+    "621f63a5f08384ac": {
+      "source": "缓存读取：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 114,
+          "column": 5
+        }
+      ]
+    },
+    "6320b4a8722a851f": {
+      "source": "状态",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 29,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 16,
+          "column": 15
+        }
+      ]
+    },
+    "63c73c4730f4473e": {
+      "source": "应用",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 116,
+          "column": 109
+        }
+      ]
+    },
+    "6478a5f1218c484e": {
+      "source": "请在桌面应用中复制到系统剪贴板",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "api.ts",
+          "line": 255,
+          "column": 43
+        }
+      ]
+    },
+    "651f274470153a05": {
+      "source": "软件更新",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 102,
+          "column": 18
+        }
+      ]
+    },
+    "653b123c956d3bcb": {
+      "source": "调用",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CallsPage.tsx",
+          "line": 9,
+          "column": 36
+        }
+      ]
+    },
+    "656ab25e264cc4e4": {
+      "source": "还没有可供 Cursor 使用的模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 36,
+          "column": 14
+        }
+      ]
+    },
+    "65a6318e07ec1e07": {
+      "source": "工具数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 43,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 132,
+          "column": 15
+        }
+      ]
+    },
+    "65cb9a7b4f620b6b": {
+      "source": "提示词 {tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 167,
+          "column": 46
+        }
+      ]
+    },
+    "68152165b3348852": {
+      "source": "选择上游服务使用的请求协议。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 20,
+          "column": 38
+        }
+      ]
+    },
+    "6a9906c79f26c0ba": {
+      "source": "开始时间",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 110,
+          "column": 21
+        }
+      ]
+    },
+    "6ae80538c2b2572d": {
+      "source": "最小化窗口",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/WindowControls.tsx",
+          "line": 44,
+          "column": 19
+        },
+        {
+          "file": "layouts/WindowControls.tsx",
+          "line": 45,
+          "column": 14
+        }
+      ]
+    },
+    "6d1876364ac6457d": {
+      "source": "代理方式",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 45,
+          "column": 20
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 46,
+          "column": 62
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 69,
+          "column": 46
+        }
+      ]
+    },
+    "6e86570183c3cdd0": {
+      "source": "当前已是最新版本",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 67,
+          "column": 76
+        }
+      ]
+    },
+    "7005693f4f050bce": {
+      "source": "缓存读写 {cost}",
+      "kind": "template",
+      "placeholders": [
+        "cost"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 174,
+          "column": 46
+        }
+      ]
+    },
+    "71eb2c6fce991a29": {
+      "source": "添加上游",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 82,
+          "column": 41
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 82,
+          "column": 104
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 84,
+          "column": 63
+        }
+      ]
+    },
+    "722e156c20650a3f": {
+      "source": "请使用 macOS 或 Windows。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 22,
+          "column": 26
+        }
+      ]
+    },
+    "7392e20d61abaa07": {
+      "source": "额外保存完整请求和流响应；默认只保存时间、状态与用量。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 129,
+          "column": 16
+        }
+      ]
+    },
+    "75844712d53a24de": {
+      "source": "值必须是字符串；编辑时 null 表示保留对应敏感 Header 的原值。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 27,
+          "column": 81
+        }
+      ]
+    },
+    "788db1cfec2a3db5": {
+      "source": "主题",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 192,
+          "column": 26
+        }
+      ]
+    },
+    "7995087e5a3dfe66": {
+      "source": "还原窗口",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/WindowControls.tsx",
+          "line": 38,
+          "column": 37
+        }
+      ]
+    },
+    "7a2229f6a6d330a5": {
+      "source": "请在桌面应用中打开终端安装 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "api.ts",
+          "line": 250,
+          "column": 43
+        }
+      ]
+    },
+    "7a3cec4ca715de80": {
+      "source": "调用统计",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 148,
+          "column": 50
+        }
+      ]
+    },
+    "7ba2d6728fe2531b": {
+      "source": "确认清理",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 225,
+          "column": 22
+        }
+      ]
+    },
+    "7d9f043f8f7ab45c": {
+      "source": "发现新版本 {version}，可在设置中安装",
+      "kind": "template",
+      "placeholders": [
+        "version"
+      ],
+      "refs": [
+        {
+          "file": "App.tsx",
+          "line": 53,
+          "column": 19
+        }
+      ]
+    },
+    "7e1845870b528392": {
+      "source": "启用模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 92,
+          "column": 73
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 92,
+          "column": 122
+        }
+      ]
+    },
+    "7e1f06318e80c3af": {
+      "source": "统计数据已清理",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 82,
+          "column": 15
+        }
+      ]
+    },
+    "7e9ab9ada2cbf2cb": {
+      "source": "名称和 Base URL 不能为空",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 57,
+          "column": 46
+        }
+      ]
+    },
+    "7f3c8312816fe26a": {
+      "source": "刷新中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 23,
+          "column": 138
+        }
+      ]
+    },
+    "7f68ebad19ba6bcd": {
+      "source": "检查更新",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 112,
+          "column": 37
+        }
+      ]
+    },
+    "80a57e03f0717f91": {
+      "source": "未配置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 20,
+          "column": 126
+        }
+      ]
+    },
+    "811a3b22a5a7f2d5": {
+      "source": "无法连接本地管理服务",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "api.ts",
+          "line": 213,
+          "column": 21
+        }
+      ]
+    },
+    "83fcfb4c1f2c1641": {
+      "source": "获取模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 82,
+          "column": 246
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 83,
+          "column": 245
+        }
+      ]
+    },
+    "842b9f11cdd96bda": {
+      "source": "开机启动",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 90,
+          "column": 18
+        },
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 96,
+          "column": 16
+        }
+      ]
+    },
+    "84924374710e03bd": {
+      "source": "Base URL 必须是有效地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 150,
+          "column": 21
+        }
+      ]
+    },
+    "8716e1344b0daddb": {
+      "source": "Cursor 官方",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 15,
+          "column": 56
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 16,
+          "column": 50
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 60,
+          "column": 48
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 66,
+          "column": 44
+        }
+      ]
+    },
+    "878a8ab176429a86": {
+      "source": "查看说明",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 62,
+          "column": 19
+        }
+      ]
+    },
+    "883cc47637fe70f3": {
+      "source": "附加到该上游所有请求的自定义请求头，值必须是字符串。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 89,
+          "column": 85
+        }
+      ]
+    },
+    "8a8542f6964852dc": {
+      "source": "下一页",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 26,
+          "column": 30
+        },
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 26,
+          "column": 92
+        }
+      ]
+    },
+    "8b6ff498515bcc2f": {
+      "source": "时间",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallTable.tsx",
+          "line": 36,
+          "column": 15
+        }
+      ]
+    },
+    "8d0c47eb9eac2d34": {
+      "source": "调用类型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 15,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 58,
+          "column": 15
+        }
+      ]
+    },
+    "90800c48a1dd0655": {
+      "source": "{label} 必须是 JSON 对象",
+      "kind": "template",
+      "placeholders": [
+        "label"
+      ],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 142,
+          "column": 87
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 99,
+          "column": 87
+        }
+      ]
+    },
+    "919cb0ce0c8db4e7": {
+      "source": "留空表示保留当前密码",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 64,
+          "column": 169
+        }
+      ]
+    },
+    "91ee087c3d4f3220": {
+      "source": "支持完整 HTTP(S) 地址或以 / 开头、与上游地址组合的相对路径。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 86,
+          "column": 100
+        }
+      ]
+    },
+    "940a168911ade998": {
+      "source": "每页条数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 22,
+          "column": 59
+        }
+      ]
+    },
+    "946b3ffc02f026c0": {
+      "source": "确定删除这个模型吗？",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 134,
+          "column": 11
+        }
+      ]
+    },
+    "94803f35c825e47a": {
+      "source": "请求完整地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 86,
+          "column": 81
+        }
+      ]
+    },
+    "94df1e7f04815daf": {
+      "source": "仅用于界面展示，不会改变发送给上游的模型名称。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 80,
+          "column": 86
+        }
+      ]
+    },
+    "95f76d30c25d5eda": {
+      "source": "当前系统暂不支持安装 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 21,
+          "column": 28
+        }
+      ]
+    },
+    "9850ed41a5bfbb0c": {
+      "source": "已选 {count} 项",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 56,
+          "column": 50
+        }
+      ]
+    },
+    "997ec8201c2adeda": {
+      "source": "打开终端安装 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 23,
+          "column": 205
+        }
+      ]
+    },
+    "9a026819dd1af5c5": {
+      "source": "可以直接输入模型标识，也可以从当前上游返回的模型列表中选择。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 81,
+          "column": 81
+        }
+      ]
+    },
+    "9ac0ac940982895d": {
+      "source": "选择上游",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 67,
+          "column": 94
+        }
+      ]
+    },
+    "9c41b3a9e12ac994": {
+      "source": "思考强度",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 27,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 47,
+          "column": 15
+        }
+      ]
+    },
+    "9e46da6923836182": {
+      "source": "如：2026-08-23 09:00、1小时前",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 110,
+          "column": 70
+        }
+      ]
+    },
+    "a026f37e613cf48b": {
+      "source": "输出 Token",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/TokenTrendChart.tsx",
+          "line": 17,
+          "column": 15
+        }
+      ]
+    },
+    "a03a1a0cb35414f8": {
+      "source": "必须是 0–65535 之间的整数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 45,
+          "column": 34
+        }
+      ]
+    },
+    "a1a42cd9b16e2162": {
+      "source": "应用设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 87,
+          "column": 29
+        }
+      ]
+    },
+    "a2901cd2743c1921": {
+      "source": "模型服务的 API 根地址；修改后会同步更新该上游模型的路由身份。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 25,
+          "column": 39
+        }
+      ]
+    },
+    "a3030bf8f16dc63c": {
+      "source": "保存",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 33,
+          "column": 103
+        },
+        {
+          "file": "components/ui/Modal.tsx",
+          "line": 7,
+          "column": 115
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 142,
+          "column": 133
+        }
+      ]
+    },
+    "a363743025795ec7": {
+      "source": "我已初始化，刷新",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 23,
+          "column": 170
+        }
+      ]
+    },
+    "a3ab741ceb188e9e": {
+      "source": "未记录请求内容，请开启详细记录后重试。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 58,
+          "column": 44
+        }
+      ]
+    },
+    "a49ffd73bc85333d": {
+      "source": "平均",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 186,
+          "column": 24
+        }
+      ]
+    },
+    "a621ab606db2a11f": {
+      "source": "密码",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 63,
+          "column": 24
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 75,
+          "column": 50
+        }
+      ]
+    },
+    "a748cc074f78de00": {
+      "source": "查看详情",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallTable.tsx",
+          "line": 181,
+          "column": 32
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 184,
+          "column": 25
+        }
+      ]
+    },
+    "a98585871c5313ff": {
+      "source": "显示名称",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 26,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 30,
+          "column": 15
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 80,
+          "column": 69
+        }
+      ]
+    },
+    "a9ab292ea9feecdc": {
+      "source": "上游",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 67,
+          "column": 36
+        },
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 113,
+          "column": 61
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 83,
+          "column": 31
+        }
+      ]
+    },
+    "aa678e13bda90e3c": {
+      "source": "自定义 Headers 的值必须是字符串或 null",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 92,
+          "column": 107
+        }
+      ]
+    },
+    "ab2f31f30acf7fda": {
+      "source": "协议",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 20,
+          "column": 23
+        },
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 20,
+          "column": 78
+        },
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 18,
+          "column": 28
+        }
+      ]
+    },
+    "ab9084a640fbb864": {
+      "source": "全不选",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 123,
+          "column": 61
+        }
+      ]
+    },
+    "abecab6701177721": {
+      "source": "已开启开机启动",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 50,
+          "column": 25
+        }
+      ]
+    },
+    "ac69f68b7010ec79": {
+      "source": "下载并安装",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 109,
+          "column": 39
+        }
+      ]
+    },
+    "ad6a60ee93d3ba3e": {
+      "source": "正在加载调用详情…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CallDetailsPage.tsx",
+          "line": 32,
+          "column": 69
+        }
+      ]
+    },
+    "ae2d0b7f79cea4a3": {
+      "source": "模型输出：{tokens} × ${price}/1M = {cost}",
+      "kind": "template",
+      "placeholders": [
+        "tokens",
+        "price",
+        "cost"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 128,
+          "column": 5
+        }
+      ]
+    },
+    "aee88743413144a2": {
+      "source": "刷新",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 92,
+          "column": 28
+        },
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 92,
+          "column": 89
+        },
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 140,
+          "column": 64
+        },
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 140,
+          "column": 125
+        }
+      ]
+    },
+    "b4411558b932266f": {
+      "source": "上游类型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 21,
+          "column": 6
+        }
+      ]
+    },
+    "b502b1d414664337": {
+      "source": "提示词：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 111,
+          "column": 5
+        }
+      ]
+    },
+    "b5141d3d19e9a048": {
+      "source": "是",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 28,
+          "column": 52
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 44,
+          "column": 33
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 53,
+          "column": 63
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 138,
+          "column": 42
+        }
+      ]
+    },
+    "b710ec36ad312918": {
+      "source": "模型服务的 API 根地址，例如 https://api.openai.com/v1。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 74,
+          "column": 43
+        }
+      ]
+    },
+    "b75a46aad3e7c132": {
+      "source": "非缓存输入：{tokens}",
+      "kind": "template",
+      "placeholders": [
+        "tokens"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 113,
+          "column": 5
+        }
+      ]
+    },
+    "b79354009c614ae9": {
+      "source": "统计数据",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 208,
+          "column": 22
+        }
+      ]
+    },
+    "b89a0e4584f27ab5": {
+      "source": "打开终端",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 126,
+          "column": 93
+        }
+      ]
+    },
+    "b9670c85a4ab939e": {
+      "source": "路由",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 16,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 64,
+          "column": 15
+        }
+      ]
+    },
+    "b97ad406809572e1": {
+      "source": "启用推理",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 93,
+          "column": 66
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 93,
+          "column": 115
+        }
+      ]
+    },
+    "b9af2de88d903be7": {
+      "source": "代理地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 50,
+          "column": 22
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 71,
+          "column": 48
+        }
+      ]
+    },
+    "bb2b7736433ae867": {
+      "source": "Cursor 追踪",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 68,
+          "column": 62
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 73,
+          "column": 20
+        }
+      ]
+    },
+    "bf57afd709694b55": {
+      "source": "概览时间范围",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 74,
+          "column": 51
+        }
+      ]
+    },
+    "bf84379b75735037": {
+      "source": "编辑上游",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 26,
+          "column": 30
+        },
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 26,
+          "column": 93
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 84,
+          "column": 51
+        }
+      ]
+    },
+    "bfc01caf9fe0c841": {
+      "source": "缓存命中率 {rate}",
+      "kind": "template",
+      "placeholders": [
+        "rate"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/CacheHitRateChart.tsx",
+          "line": 71,
+          "column": 62
+        }
+      ]
+    },
+    "c1e98892a77f7a19": {
+      "source": "{count} 条/页",
+      "kind": "template",
+      "placeholders": [
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 22,
+          "column": 159
+        }
+      ]
+    },
+    "c3760858cdb6d9f4": {
+      "source": "请求体",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 57,
+          "column": 14
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 57,
+          "column": 51
+        }
+      ]
+    },
+    "c62a58459251b02c": {
+      "source": "图片生成",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 94,
+          "column": 66
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 94,
+          "column": 115
+        }
+      ]
+    },
+    "c7ea2c9bc43134bd": {
+      "source": "编辑模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 97,
+          "column": 32
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 97,
+          "column": 95
+        },
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 123,
+          "column": 51
+        }
+      ]
+    },
+    "c8df3c14a003bfcd": {
+      "source": "无法加载调用详情",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CallDetailsPage.tsx",
+          "line": 29,
+          "column": 26
+        }
+      ]
+    },
+    "c98e118e0a43f078": {
+      "source": "模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 112,
+          "column": 61
+        }
+      ]
+    },
+    "c9b9ae7a61444ab7": {
+      "source": "上一页",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 25,
+          "column": 30
+        },
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 25,
+          "column": 92
+        }
+      ]
+    },
+    "c9d146d006993cc1": {
+      "source": "缓存统计策略：默认口径（{rate}）",
+      "kind": "template",
+      "placeholders": [
+        "rate"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 121,
+          "column": 5
+        }
+      ]
+    },
+    "cb2f1709f983d2f4": {
+      "source": "模型名称",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallTable.tsx",
+          "line": 41,
+          "column": 15
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 81,
+          "column": 54
+        }
+      ]
+    },
+    "cea1aafe9416de7b": {
+      "source": "请求头",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 56,
+          "column": 14
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 56,
+          "column": 51
+        }
+      ]
+    },
+    "cfae1a14d2120c57": {
+      "source": "详细模式",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 127,
+          "column": 22
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 133,
+          "column": 20
+        }
+      ]
+    },
+    "cfe085015632e9c8": {
+      "source": "桌面前端连接的本地管理服务端口；填写 0 时启动时随机选择。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 164,
+          "column": 21
+        }
+      ]
+    },
+    "cfe999e50be8ef54": {
+      "source": "是否声明模型支持图片生成。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 94,
+          "column": 39
+        }
+      ]
+    },
+    "d15a909c3490a7e0": {
+      "source": "端点类型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 77,
+          "column": 25
+        },
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 77,
+          "column": 86
+        }
+      ]
+    },
+    "d2d648bd1c94b7f9": {
+      "source": "认证",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 54,
+          "column": 22
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 72,
+          "column": 48
+        }
+      ]
+    },
+    "d30d35c5ec4a888d": {
+      "source": "请至少选择或输入一个模型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 77,
+          "column": 45
+        }
+      ]
+    },
+    "d34335433395cd3a": {
+      "source": "登录系统后自动启动 Cursor BYOK。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 91,
+          "column": 17
+        }
+      ]
+    },
+    "d3d21191f32e79a5": {
+      "source": "处理中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Modal.tsx",
+          "line": 32,
+          "column": 116
+        }
+      ]
+    },
+    "d44e9b3d3b31d37b": {
+      "source": "名称",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 19,
+          "column": 52
+        },
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 17,
+          "column": 28
+        }
+      ]
+    },
+    "d667c1616e31c4c4": {
+      "source": "留空以保留当前密钥",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderEditor.tsx",
+          "line": 26,
+          "column": 190
+        }
+      ]
+    },
+    "d86fa42c3848c680": {
+      "source": "使用系统代理",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 29,
+          "column": 79
+        },
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 46,
+          "column": 128
+        }
+      ]
+    },
+    "d8c47e9776cf1082": {
+      "source": "主菜单",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 114,
+          "column": 54
+        }
+      ]
+    },
+    "da521d1c1cbd36af": {
+      "source": "需要授权安装证书",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 128,
+          "column": 18
+        }
+      ]
+    },
+    "db0a1393f05aa4bd": {
+      "source": "默认继承上游，可为当前模型单独修改。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 77,
+          "column": 42
+        }
+      ]
+    },
+    "ddde16f8839da3ce": {
+      "source": "总请求",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 104,
+          "column": 14
+        }
+      ]
+    },
+    "de8184da1ef88d03": {
+      "source": "已配置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 20,
+          "column": 115
+        }
+      ]
+    },
+    "dea7749c4cd77e6d": {
+      "source": "总请求 Token 包含提示词和模型输出。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 108,
+          "column": 5
+        }
+      ]
+    },
+    "df3d58c7d84b85f2": {
+      "source": "设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 239,
+          "column": 30
+        }
+      ]
+    },
+    "df8b71c74d9b8478": {
+      "source": "响应流",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 60,
+          "column": 33
+        },
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 63,
+          "column": 32
+        }
+      ]
+    },
+    "dfb802238b38fbd4": {
+      "source": "已启用",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 72,
+          "column": 121
+        }
+      ]
+    },
+    "e025f1ff71996425": {
+      "source": "已设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 75,
+          "column": 123
+        }
+      ]
+    },
+    "e1295adecbb77755": {
+      "source": "关闭广告",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ads/FloatingAd.tsx",
+          "line": 64,
+          "column": 66
+        }
+      ]
+    },
+    "e14115de7f7c5795": {
+      "source": "过去一年的 Token 用量",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/ContributionCalendarChart.tsx",
+          "line": 252,
+          "column": 50
+        }
+      ]
+    },
+    "e14a5eee9b0b0f9f": {
+      "source": "是否声明模型支持推理能力。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorModelEditor.tsx",
+          "line": 93,
+          "column": 39
+        }
+      ]
+    },
+    "e14f20d572c02611": {
+      "source": "上游调用序号",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 19,
+          "column": 6
+        }
+      ]
+    },
+    "e18516550b9a5105": {
+      "source": "无用量",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 134,
+          "column": 15
+        }
+      ]
+    },
+    "e3fee05f688708b4": {
+      "source": "LLM 调用",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 154,
+          "column": 40
+        }
+      ]
+    },
+    "e59ae97924d62f01": {
+      "source": "第一页",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 24,
+          "column": 30
+        },
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 24,
+          "column": 92
+        }
+      ]
+    },
+    "e5b9961a0d5242e3": {
+      "source": "端口设置已保存，重启软件后生效",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 58,
+          "column": 17
+        }
+      ]
+    },
+    "e6ca887f22288cde": {
+      "source": "Model ID 和显示名称不能为空",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 78,
+          "column": 72
+        }
+      ]
+    },
+    "e77e3d58b0dcffaa": {
+      "source": "耗时",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 33,
+          "column": 6
+        },
+        {
+          "file": "components/CallTable.tsx",
+          "line": 82,
+          "column": 15
+        }
+      ]
+    },
+    "e828bd3a0151edc2": {
+      "source": "需要在系统中信任本地 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 21,
+          "column": 68
+        }
+      ]
+    },
+    "ea26b760e930a7ca": {
+      "source": "调用观测",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 124,
+          "column": 26
+        }
+      ]
+    },
+    "eb11e2df1d8ae387": {
+      "source": "上游地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 22,
+          "column": 6
+        }
+      ]
+    },
+    "eb1be07f2ca6e506": {
+      "source": "按 Claude Opus 4.7 价格估算。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 120,
+          "column": 5
+        }
+      ]
+    },
+    "eb77492c9f76a7e1": {
+      "source": "安装命令已自动复制。点击“打开终端”，将命令粘贴到终端中执行，并按提示输入密码。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 129,
+          "column": 16
+        }
+      ]
+    },
+    "ed31fbb483ee1b0a": {
+      "source": "操作",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallTable.tsx",
+          "line": 178,
+          "column": 15
+        },
+        {
+          "file": "components/ProviderTable.tsx",
+          "line": 25,
+          "column": 31
+        }
+      ]
+    },
+    "edc70de18c6da1a6": {
+      "source": "安装本地 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 126,
+          "column": 45
+        }
+      ]
+    },
+    "ede6d08f397df283": {
+      "source": "Cursor 设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 122,
+          "column": 25
+        }
+      ]
+    },
+    "ee239f3943293f87": {
+      "source": "周日",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 54,
+          "column": 25
+        }
+      ]
+    },
+    "ee6b89a6a740a4c4": {
+      "source": "端口被占用时会自动选择新的随机端口并保存。修改后需要重启软件才会生效。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 183,
+          "column": 16
+        }
+      ]
+    },
+    "f04c91a6bc3a6926": {
+      "source": "额外参数",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 54,
+          "column": 187
+        },
+        {
+          "file": "pages/ProvidersPage.tsx",
+          "line": 64,
+          "column": 46
+        }
+      ]
+    },
+    "f396118b8afd2a21": {
+      "source": "Cursor 接管已生效；添加上游及其模型配置后即可使用 BYOK 模型。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 37,
+          "column": 12
+        }
+      ]
+    },
+    "f3a76d896853c1df": {
+      "source": "未命中",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/CacheHitRateChart.tsx",
+          "line": 60,
+          "column": 23
+        }
+      ]
+    },
+    "f4694c46b1e19602": {
+      "source": "最终请求类型",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 23,
+          "column": 6
+        }
+      ]
+    },
+    "f4dcb6a3ceb32247": {
+      "source": "第 {page} / {count} 页",
+      "kind": "template",
+      "placeholders": [
+        "page",
+        "count"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/Pagination.tsx",
+          "line": 23,
+          "column": 14
+        }
+      ]
+    },
+    "f4fa9f31ea2ae58d": {
+      "source": "过去一年的 Token 用量日历",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/ContributionCalendarChart.tsx",
+          "line": 258,
+          "column": 23
+        }
+      ]
+    },
+    "f50276449943286c": {
+      "source": "结束时间",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 111,
+          "column": 21
+        }
+      ]
+    },
+    "f69273dbbebfb3a1": {
+      "source": "格式化",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/JsonEditor.tsx",
+          "line": 228,
+          "column": 79
+        }
+      ]
+    },
+    "f85537d1fd2ef6f6": {
+      "source": "自定义概览筛选",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 100,
+          "column": 19
+        }
+      ]
+    },
+    "f95ea7f4c063eea7": {
+      "source": "未启用",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 72,
+          "column": 132
+        }
+      ]
+    },
+    "f9615d05d8e18595": {
+      "source": "清除{label}筛选",
+      "kind": "template",
+      "placeholders": [
+        "label"
+      ],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 83,
+          "column": 87
+        }
+      ]
+    },
+    "f9aa11dbb15ce647": {
+      "source": "周六",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/charts/DailyTokenUsageChart.tsx",
+          "line": 53,
+          "column": 25
+        }
+      ]
+    },
+    "f9b55ca75425161b": {
+      "source": "未记录响应内容，请开启详细记录后重试。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/CallDetails.tsx",
+          "line": 64,
+          "column": 44
+        }
+      ]
+    },
+    "fa5b4b8a751c7d1b": {
+      "source": "Cursor 使用的本地代理端口；填写 0 时启动时随机选择。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 151,
+          "column": 21
+        }
+      ]
+    },
+    "fb11aa6f29827095": {
+      "source": "检查中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/AppLifecycleSettingsCard.tsx",
+          "line": 112,
+          "column": 25
+        }
+      ]
+    },
+    "fbe8778fa8b9bab5": {
+      "source": "需要先初始化本地 CA",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 21,
+          "column": 89
+        }
+      ]
+    },
+    "fc3947ebe6b2177b": {
+      "source": "默认 {defaultRate} / 计入创建 {reuseRate}",
+      "kind": "template",
+      "placeholders": [
+        "defaultRate",
+        "reuseRate"
+      ],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 94,
+          "column": 5
+        }
+      ]
+    },
+    "fcd311fd8ad42462": {
+      "source": "打开模型列表",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/Select.tsx",
+          "line": 111,
+          "column": 90
+        },
+        {
+          "file": "components/ui/Select.tsx",
+          "line": 195,
+          "column": 109
+        }
+      ]
+    },
+    "fd415f8e0097c832": {
+      "source": "缓存读写已计入提示词侧统计。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/metrics/HomeMetrics.tsx",
+          "line": 117,
+          "column": 5
+        }
+      ]
+    },
+    "fdc4cabc370fa3f7": {
+      "source": "暂无选项",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ui/MultiSelect.tsx",
+          "line": 109,
+          "column": 49
+        }
+      ]
+    },
+    "fea405f9b01d1416": {
+      "source": "概览",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/HomePage.tsx",
+          "line": 160,
+          "column": 25
+        }
+      ]
+    },
+    "ff509c9ba052a21c": {
+      "source": "保存中…",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/settings/ProxySettingsCard.tsx",
+          "line": 33,
+          "column": 91
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 142,
+          "column": 121
+        }
+      ]
+    },
+    "ff66b1c7e010bbc2": {
+      "source": "请在终端中粘贴授权命令并输入密码，完成后点击下方按钮",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/CursorGates.tsx",
+          "line": 22,
+          "column": 73
+        }
+      ]
+    },
+    "ff673195f05fb056": {
+      "source": "服务端口",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 53,
+          "column": 46
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 163,
+          "column": 22
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 178,
+          "column": 58
+        }
+      ]
+    }
+  }
+}

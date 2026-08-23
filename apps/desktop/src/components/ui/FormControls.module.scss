@@ -1,0 +1,50 @@
+@use "../../styles/typography" as type;
+
+.field {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--vscode-descriptionForeground);
+  font-size: type.$font-size-xs;
+}
+
+.label {
+  min-height: 20px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  line-height: 20px;
+}
+.hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--vscode-descriptionForeground);
+  cursor: help;
+  &:hover {
+    color: var(--vscode-foreground);
+  }
+}
+
+.input {
+  width: 100%;
+  color: var(--vscode-input-foreground);
+  background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, transparent);
+  border-radius: 5px;
+  outline: none;
+  font: inherit;
+
+  &:focus {
+    border-color: var(--vscode-focusBorder);
+  }
+  &:disabled {
+    opacity: 0.6;
+  }
+}
+
+.input {
+  height: 34px;
+  padding: 0 10px;
+}
