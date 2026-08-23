@@ -7,7 +7,9 @@ import { Button } from "../components/ui/Button";
 import { Checkbox } from "../components/ui/Checkbox";
 import { FormField, TextInput } from "../components/ui/FormControls";
 import { Modal } from "../components/ui/Modal";
+import { Select } from "../components/ui/Select";
 import { TitledCard } from "../components/ui/TitledCard";
+import { setLocalePreference, useI18n, type LocalePreference } from "../i18n/store";
 import { useMessage } from "../components/ui/message";
 import { appStore, useAppStore } from "../store/appStore";
 import { themeOptions } from "../theme/theme";
@@ -15,6 +17,7 @@ import styles from "./SettingsPage.module.scss";
 
 export function SettingsPage() {
   const { detailed, ports, theme } = useAppStore();
+  const { preference, locale } = useI18n();
   const message = useMessage();
   const [proxyPort, setProxyPort] = useState(String(ports.proxy_port));
   const [servicePort, setServicePort] = useState(String(ports.service_port));
@@ -189,15 +192,35 @@ export function SettingsPage() {
       </TitledCard>
       <ProxySettingsCard settings={outboundProxy} draft={proxyDraft} editing={editingProxy} saving={savingProxy} onDraftChange={setProxyDraft} onEdit={editProxy} onCancel={cancelProxyEdit} onSave={() => void saveProxy()} />
       <AppLifecycleSettingsCard />
+      <TitledCard title={t("语言")}>
+        <div className={styles.settingRow}>
+          <div>
+            <strong>{t("界面语言")}</strong>
+            <small>{t("默认跟随操作系统；不支持的系统语言使用英文。当前：{language}", { language: locale === "zh-CN" ? "简体中文" : "English" })}</small>
+          </div>
+          <div className={styles.languageControl}>
+            <Select
+              value={preference}
+              ariaLabel={t("界面语言")}
+              options={[
+                { value: "system", label: t("跟随系统") },
+                { value: "zh-CN", label: "简体中文" },
+                { value: "en-US", label: "English" },
+              ]}
+              onChange={(value) => setLocalePreference(value as LocalePreference)}
+            />
+          </div>
+        </div>
+      </TitledCard>
       <TitledCard title={t("主题")}>
         <div className={styles.themeActions}>
-          {themeOptions.map(({ id, name }) => (
+          {themeOptions.map(({ id }) => (
             <button
               className={theme === id ? styles.selected : ""}
               key={id}
               onClick={() => appStore.selectTheme(id)}
             >
-              {name}
+              {id === "default-dark" ? t("默认暗色") : t("默认亮色")}
             </button>
           ))}
         </div>

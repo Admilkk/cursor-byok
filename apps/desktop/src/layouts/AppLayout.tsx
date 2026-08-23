@@ -13,50 +13,24 @@ import controls from "../components/ui/Controls.module.scss";
 import { Icon } from "../components/ui/Icon";
 import { Modal } from "../components/ui/Modal";
 import { TooltipTrigger } from "../components/ui/TooltipTrigger";
-import { flatColorAreaChartIcon, flatColorOrganizationIcon, flatColorSalesPerformanceIcon, flatColorSettingsIcon, refreshIcon } from "../components/ui/icons";
+import { flatColorAboutIcon, flatColorAreaChartIcon, flatColorOrganizationIcon, flatColorSalesPerformanceIcon, flatColorSettingsIcon, refreshIcon } from "../components/ui/icons";
 import { useMessage } from "../components/ui/message";
 import { VirtualList } from "../components/virtual/VirtualList";
+import { useI18n } from "../i18n/store";
 import { appStore, useAppStore } from "../store/appStore";
 import styles from "./AppLayout.module.scss";
 import { PageActionsTarget } from "./PageActions";
 
 type MenuItem =
   | { kind: "page"; path: string; label: string; icon: IconifyIcon | string }
+  | { kind: "external"; id: string; label: string; icon: IconifyIcon | string }
   | { kind: "group"; label: string };
-
-const menuItems: MenuItem[] = [
-  { kind: "page", path: "/", label: "数据概览", icon: flatColorAreaChartIcon },
-  {
-    kind: "page",
-    path: "/calls",
-    label: "调用详细",
-    icon: flatColorSalesPerformanceIcon,
-  },
-  {
-    kind: "page",
-    path: "/providers",
-    label: "上游配置",
-    icon: flatColorOrganizationIcon,
-  },
-  { kind: "group", label: "Harness" },
-
-  {
-    kind: "page",
-    path: "/settings",
-    label: "系统设置",
-    icon: flatColorSettingsIcon,
-  },
-  {
-    kind: "page",
-    path: "/harness/cursor",
-    label: "Cursor 设置",
-    icon: cursorIconUrl,
-  },
-];
 
 const keptAlivePages = ["/", "/calls", "/providers", "/settings", "/harness/cursor"];
 const readAdStorageKey = "cursor-byok:read-ad-ids";
 const dismissedAdStorageKey = "cursor-byok:dismissed-ad-ids";
+const tutorialReadStorageKey = "cursor-byok:tutorial-read";
+const tutorialUrl = "https://docs.leokun.cn";
 
 function loadStoredAdIds(key: string): Set<string> {
   try {
@@ -69,6 +43,7 @@ function loadStoredAdIds(key: string): Set<string> {
 
 export function AppLayout() {
   const { busy } = useAppStore();
+  const { locale } = useI18n();
   const message = useMessage();
   const location = useLocation();
   const [actionTarget, setActionTarget] = useState<HTMLDivElement | null>(null);
@@ -76,6 +51,13 @@ export function AppLayout() {
   const [activeAd, setActiveAd] = useState<AdSlot | null>(null);
   const [dismissCandidate, setDismissCandidate] = useState<AdSlot | null>(null);
   const [dismissReason, setDismissReason] = useState("");
+  const [tutorialRead, setTutorialRead] = useState(() => {
+    try {
+      return localStorage.getItem(tutorialReadStorageKey) === "true";
+    } catch {
+      return false;
+    }
+  });
   const [readAdIds, setReadAdIds] = useState(() => loadStoredAdIds(readAdStorageKey));
   const [dismissedAdIds, setDismissedAdIds] = useState(() => loadStoredAdIds(dismissedAdStorageKey));
   const dismissedAdIdsRef = useRef(dismissedAdIds);
@@ -83,6 +65,26 @@ export function AppLayout() {
   const adTriggers = useRef(new Map<string, HTMLButtonElement>());
   const closeAd = useCallback(() => setActiveAd(null), []);
   const visibleAds = ads.filter((ad) => ad.enabled && ad.placement === "menu" && !dismissedAdIds.has(ad.id));
+  const menuItems: MenuItem[] = [
+    { kind: "page", path: "/", label: t("数据概览"), icon: flatColorAreaChartIcon },
+    { kind: "page", path: "/calls", label: t("调用详细"), icon: flatColorSalesPerformanceIcon },
+    { kind: "page", path: "/providers", label: t("上游配置"), icon: flatColorOrganizationIcon },
+    { kind: "external", id: "tutorial", label: t("使用教程"), icon: flatColorAboutIcon },
+    { kind: "group", label: "Harness" },
+    { kind: "page", path: "/settings", label: t("系统设置"), icon: flatColorSettingsIcon },
+    { kind: "page", path: "/harness/cursor", label: t("Cursor 设置"), icon: cursorIconUrl },
+  ];
+
+  const openTutorial = useCallback(() => {
+    setTutorialRead(true);
+    try {
+      localStorage.setItem(tutorialReadStorageKey, "true");
+    } catch {
+      // Read state remains valid for the current session when storage is unavailable.
+    }
+    void api.openExternalUrl(tutorialUrl)
+      .catch((cause) => message(cause instanceof Error ? cause.message : String(cause)));
+  }, [message]);
 
   useEffect(() => {
     let disposed = false;
@@ -93,7 +95,7 @@ export function AppLayout() {
       if (pending || now - lastRequestedAt < 10_000) return;
       pending = true;
       lastRequestedAt = now;
-      void api.ads(dismissedAdIdsRef.current)
+      void api.ads(dismissedAdIdsRef.current, locale)
         .then((runtime) => {
           if (disposed) return;
           setAds(runtime.slots);
@@ -120,7 +122,7 @@ export function AppLayout() {
       window.removeEventListener("focus", refreshAds);
       document.removeEventListener("visibilitychange", refreshVisibleAds);
     };
-  }, []);
+  }, [locale]);
 
   const openAd = useCallback((ad: AdSlot) => {
     setReadAdIds((current) => {
@@ -178,13 +180,27 @@ export function AppLayout() {
       <nav className={styles.navigation} aria-label={t("主菜单")}>
         <VirtualList
           items={menuItems}
-          itemKey={(item) => item.kind === "group" ? `group-${item.label}` : item.path}
+          itemKey={(item) => item.kind === "group" ? `group-${item.label}` : item.kind === "external" ? `external-${item.id}` : item.path}
           estimatedItemHeight={36}
           itemGap={3}
           className={`${styles.navigationList} scroll-shadow-bottom`}
         >
           {(item) => item.kind === "group"
           ? <div className={styles.navigationGroup} key={`group-${item.label}`}>{item.label}</div>
+          : item.kind === "external"
+          ? <div className={styles.navigationRow} key={item.id}>
+            <button
+              type="button"
+              aria-label={`${item.label}${tutorialRead ? "" : `，${t("未读")}`}`}
+              onClick={openTutorial}
+            >
+              {typeof item.icon === "string"
+                ? <Icon src={item.icon} size="1.3em" />
+                : <Icon icon={item.icon} size="1.3em" />}
+              <span>{item.label}</span>
+              {!tutorialRead && <span className={styles.menuUnreadDot} aria-hidden="true" />}
+            </button>
+          </div>
           : <div className={styles.navigationRow} key={item.path}>
             <NavLink to={item.path} end={item.path === "/"}>
               {typeof item.icon === "string"

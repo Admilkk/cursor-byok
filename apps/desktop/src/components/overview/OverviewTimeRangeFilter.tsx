@@ -11,14 +11,6 @@ import styles from "./OverviewTimeRangeFilter.module.scss";
 
 export type OverviewRangePreset = "ten-minutes" | "hour" | "today" | "week" | "month" | "custom";
 
-const presets: Array<{ value: Exclude<OverviewRangePreset, "custom">; label: string }> = [
-  { value: "hour", label: "近1小时" },
-  { value: "today", label: "近1自然日" },
-  { value: "ten-minutes", label: "近10分钟" },
-  { value: "week", label: "近一周" },
-  { value: "month", label: "近一个月" },
-];
-
 export function OverviewTimeRangeFilter({ value, customOpen, customStart, customEnd, modelOptions, providerOptions, selectedModels, selectedProviders, busy, onSelect, onCustomOpenChange, onCustomStartChange, onCustomEndChange, onSelectedModelsChange, onSelectedProvidersChange, onCustomApply, onRefresh }: {
   value: OverviewRangePreset;
   customOpen: boolean;
@@ -38,6 +30,13 @@ export function OverviewTimeRangeFilter({ value, customOpen, customStart, custom
   onCustomApply: () => void;
   onRefresh: () => void;
 }) {
+  const presets: Array<{ value: Exclude<OverviewRangePreset, "custom">; label: string }> = [
+    { value: "hour", label: t("近1小时") },
+    { value: "today", label: t("近1自然日") },
+    { value: "ten-minutes", label: t("近10分钟") },
+    { value: "week", label: t("近一周") },
+    { value: "month", label: t("近一个月") },
+  ];
   const customButton = useRef<HTMLButtonElement>(null);
   const popover = useRef<HTMLDivElement>(null);
   const popoverId = useId();

@@ -15,11 +15,12 @@ use super::ControlService;
 // 此广告拉取不涉及用户隐私，用户id随机产生
 // 开源项目广告为作者唯一收入来源，PR时请勿去除此广告
 
-pub(super) const ADS_ENDPOINT: &str = "http://127.0.0.1:8080/api/v1/ads?placement=menu";
+pub(super) const ADS_ENDPOINT: &str = "https://tab.leokun.cn/api/v1/ads?placement=menu";
 pub(super) const DEVICE_ID_HEADER: &str = "X-Cursor-Assistant-Device-ID";
 pub(super) const OS_HEADER: &str = "X-Cursor-Assistant-OS";
 pub(super) const APP_VERSION_HEADER: &str = "X-Cursor-Assistant-Version";
 pub(super) const DISABLED_AD_IDS_HEADER: &str = "disable-ad-ids";
+pub(super) const LANGUAGE_HEADER: &str = "accept-language";
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct AdRuntime {
@@ -121,7 +122,19 @@ pub async fn get(
     let disabled_ad_ids = headers
         .get(DISABLED_AD_IDS_HEADER)
         .and_then(|value| value.to_str().ok());
-    Ok(Json(service.ads(disabled_ad_ids).await?))
+    Ok(Json(
+        service.ads(disabled_ad_ids, ad_language(&headers)).await?,
+    ))
+}
+
+fn ad_language(headers: &HeaderMap) -> &'static str {
+    match headers
+        .get(LANGUAGE_HEADER)
+        .and_then(|value| value.to_str().ok())
+    {
+        Some(value) if value.eq_ignore_ascii_case("zh-CN") => "zh-CN",
+        _ => "en-US",
+    }
 }
 
 pub async fn dismiss(
@@ -136,6 +149,16 @@ pub async fn dismiss(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn accepts_supported_ad_language_and_falls_back_to_english() {
+        let mut headers = HeaderMap::new();
+        headers.insert(LANGUAGE_HEADER, "zh-CN".parse().unwrap());
+        assert_eq!(ad_language(&headers), "zh-CN");
+
+        headers.insert(LANGUAGE_HEADER, "fr-FR".parse().unwrap());
+        assert_eq!(ad_language(&headers), "en-US");
+    }
 
     #[test]
     fn filters_disabled_slots_without_limiting_menu_ads() {

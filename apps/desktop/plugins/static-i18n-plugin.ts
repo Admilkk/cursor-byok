@@ -295,7 +295,8 @@ function mergeLocaleMessages(
 
 function validateTranslations(
   sourceRoot: string,
-  entries: Record<string, MergedEntry>
+  entries: Record<string, MergedEntry>,
+  requireComplete: boolean
 ): void {
   for (const locale of SUPPORTED_LOCALES) {
     if (locale === SOURCE_LOCALE) continue
@@ -303,7 +304,14 @@ function validateTranslations(
     const messages = readJSONFile(localePath)
     for (const [id, entry] of Object.entries(entries)) {
       const translation = messages[id]
-      if (!translation) continue
+      if (!translation) {
+        if (requireComplete) {
+          throw new Error(
+            `[static-i18n] ${localePath}:${id} 缺少译文：${entry.source}`
+          )
+        }
+        continue
+      }
       const actual = placeholderNames(translation)
       assertUniquePlaceholders(actual, `${localePath}:${id}`, translation)
       const missing = entry.placeholders.filter((name) => !actual.includes(name))
@@ -446,8 +454,8 @@ export function staticI18nPlugin(): Plugin {
     },
     buildStart() {
       const catalog = collectCatalog(sourceRoot)
-      validateTranslations(sourceRoot, catalog.entries)
       if (shouldScan) syncCatalogFiles(sourceRoot, catalog)
+      validateTranslations(sourceRoot, catalog.entries, !shouldScan)
     },
     transform(code, id) {
       if (!isSourceFile(id) || isExcludedFile(sourceRoot, id)) return null

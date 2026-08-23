@@ -7,7 +7,7 @@ use url::Url;
 
 use super::ads::{
     AdDismissalInput, AdRuntime, ADS_ENDPOINT, APP_VERSION_HEADER, DEVICE_ID_HEADER,
-    DISABLED_AD_IDS_HEADER, OS_HEADER,
+    DISABLED_AD_IDS_HEADER, LANGUAGE_HEADER, OS_HEADER,
 };
 
 use crate::{
@@ -83,7 +83,11 @@ impl ControlService {
         &self.cursor_harness
     }
 
-    pub(super) async fn ads(&self, disabled_ad_ids: Option<&str>) -> Result<AdRuntime> {
+    pub(super) async fn ads(
+        &self,
+        disabled_ad_ids: Option<&str>,
+        language: &str,
+    ) -> Result<AdRuntime> {
         let client = crate::network::client(&self.store).await?;
         let installation_id = self.store.installation_id().await?;
         let mut request = client
@@ -91,6 +95,7 @@ impl ControlService {
             .header(DEVICE_ID_HEADER, installation_id)
             .header(OS_HEADER, std::env::consts::OS)
             .header(APP_VERSION_HEADER, env!("CARGO_PKG_VERSION"))
+            .header(LANGUAGE_HEADER, language)
             .timeout(std::time::Duration::from_secs(5));
         if let Some(disabled_ad_ids) = disabled_ad_ids.filter(|value| !value.is_empty()) {
             request = request.header(DISABLED_AD_IDS_HEADER, disabled_ad_ids);

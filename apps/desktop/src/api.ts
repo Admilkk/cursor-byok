@@ -1,4 +1,5 @@
 import type { AdRuntime } from "./components/ads/types";
+import type { Locale } from "./i18n/runtime";
 
 export type ProviderType = "openai-chat" | "openai-responses" | "anthropic";
 
@@ -221,9 +222,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const api = {
-  ads: (disabledAdIds: Iterable<string>) => {
+  ads: (disabledAdIds: Iterable<string>, locale: Locale) => {
     const value = [...disabledAdIds].join(",");
-    return request<AdRuntime>("/ads", value ? { headers: { "disable-ad-ids": value } } : undefined);
+    return request<AdRuntime>("/ads", {
+      headers: {
+        "accept-language": locale,
+        ...(value ? { "disable-ad-ids": value } : {}),
+      },
+    });
   },
   dismissAd: (id: string, reason: string) => request<void>(`/ads/${encodeURIComponent(id)}/dismissals`, { method: "POST", body: JSON.stringify({ reason }) }),
   providers: () => request<Provider[]>("/providers"),

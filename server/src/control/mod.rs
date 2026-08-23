@@ -185,6 +185,7 @@ fn desktop_cors() -> CorsLayer {
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers([
             CONTENT_TYPE,
+            header::ACCEPT_LANGUAGE,
             header::HeaderName::from_static("disable-ad-ids"),
         ])
 }

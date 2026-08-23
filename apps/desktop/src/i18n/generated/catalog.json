@@ -87,7 +87,7 @@
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 145,
+          "line": 148,
           "column": 82
         }
       ]
@@ -111,7 +111,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 231,
+          "line": 254,
           "column": 14
         }
       ]
@@ -163,7 +163,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 222,
+          "line": 245,
           "column": 16
         }
       ]
@@ -312,7 +312,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 205,
+          "line": 228,
           "column": 26
         }
       ]
@@ -595,7 +595,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 209,
+          "line": 232,
           "column": 60
         }
       ]
@@ -621,17 +621,17 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 52,
+          "line": 55,
           "column": 42
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 150,
+          "line": 153,
           "column": 22
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 177,
+          "line": 180,
           "column": 58
         }
       ]
@@ -707,6 +707,18 @@
         }
       ]
     },
+    "217cfe7db1e3d10a": {
+      "source": "跟随系统",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 206,
+          "column": 43
+        }
+      ]
+    },
     "22c6b4eb4caee6ae": {
       "source": "代理设置已保存",
       "kind": "text",
@@ -714,7 +726,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 107,
+          "line": 110,
           "column": 15
         }
       ]
@@ -747,6 +759,18 @@
         }
       ]
     },
+    "29fbbef32a6eb58b": {
+      "source": "不再显示此广告",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 216,
+          "column": 14
+        }
+      ]
+    },
     "2a2773134a829016": {
       "source": "按历史 LLM 调用记录汇总，进行中的调用不计入。",
       "kind": "text",
@@ -766,7 +790,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 115,
+          "line": 114,
           "column": 105
         },
         {
@@ -777,7 +801,12 @@
         {
           "file": "components/ui/Modal.tsx",
           "line": 7,
-          "column": 92
+          "column": 96
+        },
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 217,
+          "column": 19
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
@@ -786,12 +815,12 @@
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 141,
+          "line": 144,
           "column": 81
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 224,
+          "line": 247,
           "column": 21
         }
       ]
@@ -908,6 +937,18 @@
         }
       ]
     },
+    "36f33adaf0942634": {
+      "source": "确认",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 218,
+          "column": 20
+        }
+      ]
+    },
     "378bb0eec39fa8a2": {
       "source": "最后一页",
       "kind": "text",
@@ -1012,7 +1053,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 216,
+          "line": 239,
           "column": 14
         }
       ]
@@ -1067,6 +1108,23 @@
         }
       ]
     },
+    "3d13868593ae4eeb": {
+      "source": "界面语言",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 198,
+          "column": 22
+        },
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 204,
+          "column": 26
+        }
+      ]
+    },
     "3da0bf1610ff5db5": {
       "source": "推荐内容",
       "kind": "text",
@@ -1074,7 +1132,7 @@
       "refs": [
         {
           "file": "components/ads/AdMenu.tsx",
-          "line": 15,
+          "line": 18,
           "column": 56
         }
       ]
@@ -1088,6 +1146,18 @@
           "file": "pages/CursorSettingsPage.tsx",
           "line": 126,
           "column": 71
+        }
+      ]
+    },
+    "4125fc7ba333524c": {
+      "source": "默认亮色",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 223,
+          "column": 52
         }
       ]
     },
@@ -1146,6 +1216,18 @@
           "file": "components/settings/ProxySettingsCard.tsx",
           "line": 55,
           "column": 59
+        }
+      ]
+    },
+    "4510b63fdcf7451f": {
+      "source": "Cursor 助手 v0.1.0",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppHeader.tsx",
+          "line": 20,
+          "column": 18
         }
       ]
     },
@@ -1215,6 +1297,18 @@
         }
       ]
     },
+    "493e097fac6bd217": {
+      "source": "上游配置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 71,
+          "column": 48
+        }
+      ]
+    },
     "497c85690c4cc0fc": {
       "source": "暂无数据",
       "kind": "text",
@@ -1239,8 +1333,13 @@
       "refs": [
         {
           "file": "components/ads/AdMenu.tsx",
-          "line": 25,
-          "column": 97
+          "line": 28,
+          "column": 99
+        },
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 197,
+          "column": 84
         }
       ]
     },
@@ -1251,7 +1350,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 90,
+          "line": 89,
           "column": 9
         },
         {
@@ -1266,6 +1365,18 @@
         }
       ]
     },
+    "51d04bc3d286f018": {
+      "source": "近1自然日",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 35,
+          "column": 30
+        }
+      ]
+    },
     "5228358a6db59fe7": {
       "source": "如：现在、2026-08-23 18:00",
       "kind": "text",
@@ -1273,7 +1384,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 111,
+          "line": 110,
           "column": 70
         }
       ]
@@ -1285,7 +1396,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 139,
+          "line": 142,
           "column": 26
         }
       ]
@@ -1384,6 +1495,18 @@
         }
       ]
     },
+    "5f9acfb945229062": {
+      "source": "你确认不想再看到此广告吗？",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 222,
+          "column": 11
+        }
+      ]
+    },
     "5fd2ec5a6e9b654c": {
       "source": "合计：{cost}",
       "kind": "template",
@@ -1479,7 +1602,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 116,
+          "line": 115,
           "column": 109
         }
       ]
@@ -1491,7 +1614,7 @@
       "refs": [
         {
           "file": "api.ts",
-          "line": 255,
+          "line": 265,
           "column": 43
         }
       ]
@@ -1575,6 +1698,18 @@
         }
       ]
     },
+    "68ea5dd4d7af20e6": {
+      "source": "系统设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 74,
+          "column": 47
+        }
+      ]
+    },
     "6a9906c79f26c0ba": {
       "source": "开始时间",
       "kind": "text",
@@ -1582,7 +1717,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 110,
+          "line": 109,
           "column": 21
         }
       ]
@@ -1693,7 +1828,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 129,
+          "line": 132,
           "column": 16
         }
       ]
@@ -1717,7 +1852,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 192,
+          "line": 215,
           "column": 26
         }
       ]
@@ -1741,7 +1876,7 @@
       "refs": [
         {
           "file": "api.ts",
-          "line": 250,
+          "line": 260,
           "column": 43
         }
       ]
@@ -1765,7 +1900,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 225,
+          "line": 248,
           "column": 22
         }
       ]
@@ -1808,7 +1943,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 82,
+          "line": 85,
           "column": 15
         }
       ]
@@ -1868,7 +2003,7 @@
       "refs": [
         {
           "file": "api.ts",
-          "line": 213,
+          "line": 214,
           "column": 21
         }
       ]
@@ -2016,6 +2151,18 @@
         }
       ]
     },
+    "8df48894086d6fbd": {
+      "source": "原因（可选）",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 224,
+          "column": 16
+        }
+      ]
+    },
     "90800c48a1dd0655": {
       "source": "{label} 必须是 JSON 对象",
       "kind": "template",
@@ -2044,6 +2191,18 @@
           "file": "components/settings/ProxySettingsCard.tsx",
           "line": 64,
           "column": 169
+        }
+      ]
+    },
+    "91aaf184cfc17ffd": {
+      "source": "数据概览",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 69,
+          "column": 39
         }
       ]
     },
@@ -2193,8 +2352,32 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 110,
+          "line": 109,
           "column": 70
+        }
+      ]
+    },
+    "9f6fee1aba17a565": {
+      "source": "语言",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 195,
+          "column": 26
+        }
+      ]
+    },
+    "9fb48101d237ff96": {
+      "source": "近一周",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 37,
+          "column": 29
         }
       ]
     },
@@ -2217,7 +2400,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 45,
+          "line": 48,
           "column": 34
         }
       ]
@@ -2259,11 +2442,11 @@
         {
           "file": "components/ui/Modal.tsx",
           "line": 7,
-          "column": 115
+          "column": 119
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 142,
+          "line": 145,
           "column": 133
         }
       ]
@@ -2372,7 +2555,7 @@
         },
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 113,
+          "line": 112,
           "column": 61
         },
         {
@@ -2487,22 +2670,22 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 92,
+          "line": 91,
           "column": 28
         },
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 92,
+          "line": 91,
           "column": 89
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 140,
+          "line": 237,
           "column": 64
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 140,
+          "line": 237,
           "column": 125
         }
       ]
@@ -2593,7 +2776,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 208,
+          "line": 231,
           "column": 22
         }
       ]
@@ -2607,6 +2790,18 @@
           "file": "pages/CursorSettingsPage.tsx",
           "line": 126,
           "column": 93
+        }
+      ]
+    },
+    "b8c9b486c83b5778": {
+      "source": "不再显示广告",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/ads/AdMenu.tsx",
+          "line": 44,
+          "column": 24
         }
       ]
     },
@@ -2678,6 +2873,30 @@
         }
       ]
     },
+    "bb7efdcb6af6e805": {
+      "source": "默认暗色",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 223,
+          "column": 40
+        }
+      ]
+    },
+    "bda62ce1d5e4ace9": {
+      "source": "可以告诉我们原因",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 229,
+          "column": 24
+        }
+      ]
+    },
     "bf57afd709694b55": {
       "source": "概览时间范围",
       "kind": "text",
@@ -2685,7 +2904,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 74,
+          "line": 73,
           "column": 51
         }
       ]
@@ -2815,7 +3034,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 112,
+          "line": 111,
           "column": 61
         }
       ]
@@ -2892,12 +3111,12 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 127,
+          "line": 130,
           "column": 22
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 133,
+          "line": 136,
           "column": 20
         }
       ]
@@ -2909,7 +3128,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 164,
+          "line": 167,
           "column": 21
         }
       ]
@@ -2923,6 +3142,18 @@
           "file": "components/cursor/CursorModelEditor.tsx",
           "line": 94,
           "column": 39
+        }
+      ]
+    },
+    "d0bfccc77315d887": {
+      "source": "近一个月",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 38,
+          "column": 30
         }
       ]
     },
@@ -3049,7 +3280,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 114,
+          "line": 180,
           "column": 54
         }
       ]
@@ -3063,6 +3294,18 @@
           "file": "pages/CursorSettingsPage.tsx",
           "line": 128,
           "column": 18
+        }
+      ]
+    },
+    "da7ae985487c38e6": {
+      "source": "近1小时",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 34,
+          "column": 29
         }
       ]
     },
@@ -3121,7 +3364,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 239,
+          "line": 262,
           "column": 30
         }
       ]
@@ -3227,6 +3470,18 @@
         }
       ]
     },
+    "e25bf3f419bb68f0": {
+      "source": "调用详细",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 70,
+          "column": 44
+        }
+      ]
+    },
     "e3fee05f688708b4": {
       "source": "LLM 调用",
       "kind": "text",
@@ -3236,6 +3491,18 @@
           "file": "components/metrics/HomeMetrics.tsx",
           "line": 154,
           "column": 40
+        }
+      ]
+    },
+    "e5043c7a2b408271": {
+      "source": "近10分钟",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/overview/OverviewTimeRangeFilter.tsx",
+          "line": 36,
+          "column": 36
         }
       ]
     },
@@ -3263,7 +3530,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 58,
+          "line": 61,
           "column": 17
         }
       ]
@@ -3316,7 +3583,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 124,
+          "line": 127,
           "column": 26
         }
       ]
@@ -3392,6 +3659,11 @@
       "placeholders": [],
       "refs": [
         {
+          "file": "layouts/AppLayout.tsx",
+          "line": 75,
+          "column": 53
+        },
+        {
           "file": "pages/CursorSettingsPage.tsx",
           "line": 122,
           "column": 25
@@ -3417,7 +3689,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 183,
+          "line": 186,
           "column": 16
         }
       ]
@@ -3509,7 +3781,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 111,
+          "line": 110,
           "column": 21
         }
       ]
@@ -3526,6 +3798,20 @@
         }
       ]
     },
+    "f78413c36d36f090": {
+      "source": "默认跟随操作系统；不支持的系统语言使用英文。当前：{language}",
+      "kind": "template",
+      "placeholders": [
+        "language"
+      ],
+      "refs": [
+        {
+          "file": "pages/SettingsPage.tsx",
+          "line": 199,
+          "column": 21
+        }
+      ]
+    },
     "f85537d1fd2ef6f6": {
       "source": "自定义概览筛选",
       "kind": "text",
@@ -3533,7 +3819,7 @@
       "refs": [
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
-          "line": 100,
+          "line": 99,
           "column": 19
         }
       ]
@@ -3595,7 +3881,7 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 151,
+          "line": 154,
           "column": 21
         }
       ]
@@ -3692,6 +3978,18 @@
         }
       ]
     },
+    "fec45092945f8790": {
+      "source": "使用教程",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "layouts/AppLayout.tsx",
+          "line": 72,
+          "column": 48
+        }
+      ]
+    },
     "ff509c9ba052a21c": {
       "source": "保存中…",
       "kind": "text",
@@ -3704,7 +4002,7 @@
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 142,
+          "line": 145,
           "column": 121
         }
       ]
@@ -3728,17 +4026,17 @@
       "refs": [
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 53,
+          "line": 56,
           "column": 46
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 163,
+          "line": 166,
           "column": 22
         },
         {
           "file": "pages/SettingsPage.tsx",
-          "line": 178,
+          "line": 181,
           "column": 58
         }
       ]
