@@ -1,0 +1,49 @@
+use crate::Result;
+use axum::{extract::State, Json};
+
+use crate::store::{PortSettings, ProxySettings, ProxySettingsInput, StatisticsStorage};
+
+use super::{ControlService, ObservabilitySettings};
+
+pub async fn get(State(service): State<ControlService>) -> Result<Json<ObservabilitySettings>> {
+    Ok(Json(service.observability().await?))
+}
+
+pub async fn update(
+    State(service): State<ControlService>,
+    Json(settings): Json<ObservabilitySettings>,
+) -> Result<Json<ObservabilitySettings>> {
+    Ok(Json(service.set_observability(settings).await?))
+}
+
+pub async fn get_ports(State(service): State<ControlService>) -> Result<Json<PortSettings>> {
+    Ok(Json(service.ports().await?))
+}
+
+pub async fn update_ports(
+    State(service): State<ControlService>,
+    Json(settings): Json<PortSettings>,
+) -> Result<Json<PortSettings>> {
+    Ok(Json(service.set_ports(settings).await?))
+}
+
+pub async fn get_storage(State(service): State<ControlService>) -> Result<Json<StatisticsStorage>> {
+    Ok(Json(service.statistics_storage().await?))
+}
+
+pub async fn clear_storage(
+    State(service): State<ControlService>,
+) -> Result<Json<StatisticsStorage>> {
+    Ok(Json(service.clear_statistics_storage().await?))
+}
+
+pub async fn get_proxy(State(service): State<ControlService>) -> Result<Json<ProxySettings>> {
+    Ok(Json(service.proxy_settings().await?))
+}
+
+pub async fn update_proxy(
+    State(service): State<ControlService>,
+    Json(settings): Json<ProxySettingsInput>,
+) -> Result<Json<ProxySettings>> {
+    Ok(Json(service.set_proxy_settings(settings).await?))
+}

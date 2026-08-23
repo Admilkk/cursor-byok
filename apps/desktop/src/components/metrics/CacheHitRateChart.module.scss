@@ -1,0 +1,30 @@
+@use "../../styles/typography" as type;
+
+.root {
+  --cache-hit-track-color: color-mix(in srgb, var(--vscode-foreground) 12%, transparent);
+  --cache-hit-value-color: var(--vscode-gitDecoration-addedResourceForeground, #4ade80);
+  position: relative;
+  width: 132px;
+  height: 82px;
+  align-self: center;
+  flex: 0 0 auto;
+}
+
+.canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.label {
+  position: absolute;
+  right: 0;
+  bottom: 10px;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  color: var(--vscode-foreground);
+  font-family: var(--oa-number-font);
+  font-size: type.$font-size-xl;
+  line-height: 1;
+  pointer-events: none;
+}

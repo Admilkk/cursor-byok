@@ -1,0 +1,203 @@
+name: Release desktop app
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: desktop-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    name: Prepare release
+    runs-on: ubuntu-latest
+    outputs:
+      should_publish: ${{ steps.release.outputs.should_publish }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read and verify app version
+        id: version
+        shell: bash
+        run: |
+          version=$(node -p "require('./apps/desktop/src-tauri/tauri.conf.json').version")
+          package_version=$(node -p "require('./apps/desktop/package.json').version")
+          cargo_version=$(sed -n '/^version = / { s/version = "\([^"]*\)"/\1/p; q; }' apps/desktop/src-tauri/Cargo.toml)
+          test "${version}" = "${package_version}"
+          test "${version}" = "${cargo_version}"
+          if [[ "${GITHUB_REF_TYPE}" = "tag" ]]; then
+            test "${GITHUB_REF_NAME}" = "v${version}"
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+
+      - name: Check whether this version is already published
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        shell: bash
+        run: |
+          state=$(gh release view "v${VERSION}" --json isDraft --jq 'if .isDraft then "draft" else "published" end' 2>/dev/null || true)
+          if [[ "${state}" = "published" ]]; then
+            echo "Version ${VERSION} is already published; nothing to do."
+            echo "should_publish=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "should_publish=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+  publish:
+    name: Publish (${{ matrix.platform }})
+    needs: prepare
+    if: needs.prepare.outputs.should_publish == 'true'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-x86_64
+            os: ubuntu-22.04
+            args: ""
+            target: ""
+          - platform: windows-x86_64
+            os: windows-latest
+            args: ""
+            target: ""
+          - platform: macos-aarch64
+            os: macos-15
+            args: "--target aarch64-apple-darwin"
+            target: aarch64-apple-darwin
+          - platform: macos-x86_64
+            os: macos-15-intel
+            args: "--target x86_64-apple-darwin"
+            target: x86_64-apple-darwin
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux system dependencies
+        if: matrix.platform == 'linux-x86_64'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Rust target
+        if: matrix.target != ''
+        run: rustup target add ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> target"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/desktop/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: apps/desktop
+        run: npm ci
+
+      - uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ contains(matrix.platform, 'macos') && '-' || '' }}
+        with:
+          projectPath: apps/desktop
+          tagName: v__VERSION__
+          releaseName: Cursor BYOK v__VERSION__
+          releaseBody: Download the installer for your platform from the assets below.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}
+
+      - name: Package legacy Linux updater asset
+        if: matrix.platform == 'linux-x86_64'
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          mkdir -p legacy-update
+          tar -czf "legacy-update/cursor-byok-${VERSION}-linux-amd64.tar.gz" -C target/release cursor-byok-desktop
+
+      - name: Package legacy Windows updater asset
+        if: matrix.platform == 'windows-x86_64'
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          New-Item -ItemType Directory -Force legacy-update | Out-Null
+          Compress-Archive -LiteralPath target/release/cursor-byok-desktop.exe -DestinationPath "legacy-update/cursor-byok-$env:VERSION-windows-amd64.zip"
+
+      - name: Package legacy macOS updater asset
+        if: contains(matrix.platform, 'macos')
+        shell: bash
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          mkdir -p legacy-update
+          archive=$(find "target/${{ matrix.target }}/release/bundle/macos" -maxdepth 1 -name '*.app.tar.gz' -print -quit)
+          test -n "${archive}"
+          legacy_platform=macos-arm64
+          if [[ "${{ matrix.platform }}" = "macos-x86_64" ]]; then
+            legacy_platform=macos-amd64
+          fi
+          cp "${archive}" "legacy-update/cursor-byok-${VERSION}-${legacy_platform}.tar.gz"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: legacy-update-${{ matrix.platform }}
+          path: legacy-update/*
+          if-no-files-found: error
+
+  finalize:
+    name: Publish GitHub Release
+    needs: [prepare, publish]
+    if: needs.prepare.outputs.should_publish == 'true' && needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: legacy-update-*
+          path: legacy-update
+          merge-multiple: true
+
+      - name: Generate legacy update manifest
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          node scripts/release/generate-legacy-update.mjs \
+            --version "${VERSION}" \
+            --repository "${GITHUB_REPOSITORY}" \
+            --assets-dir legacy-update \
+            --output legacy-update/update.json \
+            --notes "Cursor BYOK v${VERSION}"
+
+      - name: Upload legacy updater assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: gh release upload "v${VERSION}" legacy-update/* --clobber
+
+      - name: Publish the completed release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: gh release edit "v${VERSION}" --draft=false --latest
