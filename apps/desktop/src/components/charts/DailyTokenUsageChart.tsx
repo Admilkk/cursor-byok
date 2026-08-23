@@ -77,9 +77,10 @@ export function DailyTokenUsageChart({
   const maximumTotal = data.reduce((maximum, day) => Math.max(maximum, totalTokens(day)), 0);
   const axisMaximum = Math.max(1, maximumTotal / DATA_HEIGHT_RATIO);
   const emptyBarHeight = axisMaximum * EMPTY_BAR_RATIO;
-  const averageLevel = data.length === 0
+  const nonZeroTotals = data.map(totalTokens).filter((total) => total !== 0);
+  const averageLevel = nonZeroTotals.length === 0
     ? 0
-    : data.reduce((sum, day) => sum + totalTokens(day), 0) / data.length;
+    : nonZeroTotals.reduce((sum, total) => sum + total, 0) / nonZeroTotals.length;
 
   const option = useMemo<EChartsCoreOption>(() => ({
     animationDuration: 450,
