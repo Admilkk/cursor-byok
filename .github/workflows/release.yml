@@ -25,6 +25,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify updater signing key
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          if [[ -z "${TAURI_SIGNING_PRIVATE_KEY}" ]]; then
+            echo "TAURI_SIGNING_PRIVATE_KEY is not configured" >&2
+            exit 1
+          fi
+
       - name: Read and verify app version
         id: version
         shell: bash
@@ -120,7 +130,7 @@ jobs:
           projectPath: apps/desktop
           tagName: v__VERSION__
           releaseName: Cursor BYOK v__VERSION__
-          releaseBody: Download the installer for your platform from the assets below.
+          releaseBody: Beta release. Download the installer for your platform from the assets below.
           releaseDraft: true
           prerelease: false
           includeUpdaterJson: true
