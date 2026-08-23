@@ -17,7 +17,9 @@ use crate::{
         LlmCallSummary, Overview, ProviderEndpoint, ProviderEndpointInput, ProviderEndpointSecret,
         ProviderModel, ProviderModelInput, ProviderType,
     },
-    store::{PortSettings, ProxySettings, ProxySettingsInput, StatisticsStorage, Store},
+    store::{
+        PortSettings, ProxySettings, ProxySettingsInput, StatisticsStorage, Store, TabSettings,
+    },
     Error, Result,
 };
 
@@ -371,6 +373,14 @@ impl ControlService {
 
     pub async fn set_proxy_settings(&self, settings: ProxySettingsInput) -> Result<ProxySettings> {
         self.store.set_proxy_settings(settings).await
+    }
+
+    pub async fn tab_settings(&self) -> Result<TabSettings> {
+        self.store.tab_settings().await
+    }
+
+    pub async fn set_tab_settings(&self, settings: TabSettings) -> Result<TabSettings> {
+        self.cursor_harness.set_tab_settings(settings).await
     }
 }
 

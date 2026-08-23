@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { api, type Model, type ProviderSelection } from "../api";
+import { api, type Model, type ProviderSelection, type TabSettings } from "../api";
 import { CursorCaGate, CursorCaProvider, CursorModelGate, CursorModelProvider } from "../components/cursor/CursorGates";
 import { CursorModelEditor, emptyCursorModelDraft, type CursorModelDraft } from "../components/cursor/CursorModelEditor";
+import { TabSettingsCard } from "../components/cursor/TabSettingsCard";
 import styles from "../components/cursor/CursorSettings.module.scss";
 import { PageContent } from "../components/layout/PageContent";
 import controls from "../components/ui/Controls.module.scss";
@@ -24,12 +25,19 @@ export function CursorSettingsPage() {
   const [caCommand, setCaCommand] = useState<string | null>(null);
   const [waitingForCaRefresh, setWaitingForCaRefresh] = useState(false);
   const [deleting, setDeleting] = useState<Model | null>(null);
+  const [tabDraft, setTabDraft] = useState<TabSettings | null>(null);
+  const [savingTab, setSavingTab] = useState(false);
   const grouped = useMemo(() => providers.map((provider) => ({ provider, models: models.filter((model) => model.provider_id === provider.provider_id) })).filter((group) => group.models.length > 0), [providers, models]);
   const caReady = cursorHarness?.ca === "ready";
   useEffect(() => {
     if (!caCommand) return;
     void api.copyCursorText(caCommand);
   }, [caCommand]);
+  useEffect(() => {
+    void api.tabSettings()
+      .then(setTabDraft)
+      .catch((cause) => message(cause instanceof Error ? cause.message : String(cause)));
+  }, [message]);
   const initializeCa = async () => {
     const status = await appStore.initializeCursorCa();
     if (status?.ca === "untrusted" && status.ca_install_command) setCaCommand(status.ca_install_command);
@@ -111,15 +119,31 @@ export function CursorSettingsPage() {
     setCaCommand(null);
     setWaitingForCaRefresh(true);
   };
+  const saveTab = async () => {
+    if (!tabDraft) return;
+    try {
+      if (tabDraft.mode === "custom" && !tabDraft.address.trim()) throw new Error(t("TAB 服务地址不能为空"));
+      setSavingTab(true);
+      setTabDraft(await api.setTabSettings(tabDraft));
+      message(t("TAB 设置已保存"));
+    } catch (cause) {
+      message(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setSavingTab(false);
+    }
+  };
   const content = <CursorCaProvider><CursorCaGate busy={cursorBusy} waitingForRefresh={waitingForCaRefresh} onInitialize={() => void initializeCa()} onRefresh={() => void refreshCa()}>
-    <CursorModelProvider><CursorModelGate onAdd={openNew}>{list}</CursorModelGate></CursorModelProvider>
+    <div className={styles.page}>
+      {tabDraft && <TabSettingsCard settings={tabDraft} saving={savingTab} onChange={setTabDraft} onSave={() => void saveTab()} />}
+      <CursorModelProvider><CursorModelGate onAdd={openNew}>{list}</CursorModelGate></CursorModelProvider>
+    </div>
   </CursorCaGate></CursorCaProvider>;
 
   return <>
     <PageActions>
       <TooltipTrigger label={caReady ? t("添加模型") : t("请先初始化 CA")}><button className={controls.iconButton} aria-label={t("添加模型")} disabled={!caReady || cursorBusy} onClick={openNew}><Icon icon={addIcon} size="1.1em" /></button></TooltipTrigger>
     </PageActions>
-    <PageContent title={t("Cursor 设置")} sections={[{ key: "cursor-settings", estimatedHeight: Math.max(280, models.length * 55 + grouped.length * 62), content }]} />
+    <PageContent title={t("Cursor 设置")} sections={[{ key: "cursor-settings", estimatedHeight: Math.max(430, models.length * 55 + grouped.length * 62 + 145), content }]} />
     <Modal open={draft !== null} title={editing ? t("编辑模型") : t("添加模型")} busy={cursorBusy} onClose={() => setDraft(null)} onSubmit={() => void save()}>
       {draft && <CursorModelEditor draft={draft} providers={providers} editing={editing !== null} modelOptions={modelOptions} discovering={discovering} onChange={setDraft} onDiscover={() => void discover()} />}
     </Modal>

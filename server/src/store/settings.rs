@@ -6,7 +6,10 @@ use super::{now_ms, Store};
 
 const PORT_SETTINGS_KEY: &str = "network_ports";
 const PROXY_SETTINGS_KEY: &str = "outbound_proxy";
+const TAB_SETTINGS_KEY: &str = "cursor_tab";
 const INSTALLATION_ID_KEY: &str = "installation_id";
+
+pub const PUBLIC_TAB_SERVICE_URL: &str = "https://tab.leokun.cn";
 
 #[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
 pub struct PortSettings {
@@ -25,6 +28,31 @@ pub enum ProxyMode {
 impl ProxyMode {
     pub fn is_custom(self) -> bool {
         self == Self::Custom
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "snake_case")]
+pub enum TabMode {
+    #[default]
+    Public,
+    Direct,
+    Custom,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq, Serialize)]
+pub struct TabSettings {
+    pub mode: TabMode,
+    pub address: String,
+}
+
+impl TabSettings {
+    pub fn service_url(&self) -> Option<&str> {
+        match self.mode {
+            TabMode::Public => Some(PUBLIC_TAB_SERVICE_URL),
+            TabMode::Direct => None,
+            TabMode::Custom => Some(&self.address),
+        }
     }
 }
 
@@ -139,6 +167,47 @@ impl Store {
         self.proxy_settings().await
     }
 
+    pub async fn tab_settings(&self) -> Result<TabSettings> {
+        let value = sqlx::query_scalar::<_, String>(
+            "SELECT value_json FROM service_settings WHERE setting_key = ?",
+        )
+        .bind(TAB_SETTINGS_KEY)
+        .fetch_optional(&self.pool)
+        .await?;
+        value
+            .map(|value| serde_json::from_str(&value).map_err(Into::into))
+            .unwrap_or_else(|| Ok(TabSettings::default()))
+    }
+
+    pub async fn set_tab_settings(&self, mut settings: TabSettings) -> Result<TabSettings> {
+        settings.address = settings.address.trim().trim_end_matches('/').to_owned();
+        if settings.mode == TabMode::Custom {
+            let parsed = url::Url::parse(&settings.address).map_err(|error| {
+                crate::Error::Config(format!("invalid TAB service address: {error}"))
+            })?;
+            if !matches!(parsed.scheme(), "http" | "https") {
+                return Err(crate::Error::Config(
+                    "TAB service address must use http or https".into(),
+                ));
+            }
+            if parsed.host_str().is_none()
+                || parsed.query().is_some()
+                || parsed.fragment().is_some()
+            {
+                return Err(crate::Error::Config(
+                    "TAB service address must be a base URL without a query or fragment".into(),
+                ));
+            }
+        }
+        sqlx::query("INSERT INTO service_settings(setting_key, value_json, updated_at_ms) VALUES (?, ?, ?) ON CONFLICT(setting_key) DO UPDATE SET value_json = excluded.value_json, updated_at_ms = excluded.updated_at_ms")
+            .bind(TAB_SETTINGS_KEY)
+            .bind(serde_json::to_string(&settings)?)
+            .bind(now_ms())
+            .execute(&self.pool)
+            .await?;
+        Ok(settings)
+    }
+
     pub async fn port_settings(&self) -> Result<PortSettings> {
         let value = sqlx::query_scalar::<_, String>(
             "SELECT value_json FROM service_settings WHERE setting_key = ?",
@@ -243,5 +312,29 @@ mod tests {
             store.proxy_settings_secret().await.unwrap().password,
             "secret"
         );
+    }
+
+    #[tokio::test]
+    async fn tab_settings_default_to_public_and_validate_custom_urls() {
+        let store = Store::connect("sqlite::memory:").await.unwrap();
+        assert_eq!(store.tab_settings().await.unwrap(), TabSettings::default());
+
+        let saved = store
+            .set_tab_settings(TabSettings {
+                mode: TabMode::Custom,
+                address: " https://tab.example.com/base/ ".into(),
+            })
+            .await
+            .unwrap();
+        assert_eq!(saved.address, "https://tab.example.com/base");
+        assert_eq!(store.tab_settings().await.unwrap(), saved);
+
+        assert!(store
+            .set_tab_settings(TabSettings {
+                mode: TabMode::Custom,
+                address: "file:///tmp/tab".into(),
+            })
+            .await
+            .is_err());
     }
 }

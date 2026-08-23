@@ -83,13 +83,33 @@ pub async fn forward(
     Extension(proxy): Extension<CursorProxy>,
     request: Request<Body>,
 ) -> Result<Response<Body>> {
+    forward_request(&proxy, request, None).await
+}
+
+pub(crate) async fn forward_to_service(
+    proxy: &CursorProxy,
+    request: Request<Body>,
+    service_url: &str,
+) -> Result<Response<Body>> {
+    forward_request(proxy, request, Some(service_url)).await
+}
+
+async fn forward_request(
+    proxy: &CursorProxy,
+    request: Request<Body>,
+    service_url: Option<&str>,
+) -> Result<Response<Body>> {
     let started = Instant::now();
     let (parts, body) = request.into_parts();
     let path = parts
         .uri
         .path_and_query()
-        .map_or("/", |value| value.as_str());
-    let url = upstream_url(&parts.headers, &proxy.upstream, path)?;
+        .map_or("/", |value| value.as_str())
+        .to_owned();
+    let url = match service_url {
+        Some(service_url) => format!("{}{}", service_url.trim_end_matches('/'), path),
+        None => upstream_url(&parts.headers, &proxy.upstream, &path)?,
+    };
 
     let mut headers = parts.headers;
     headers.remove(UPSTREAM_URL_HEADER);
@@ -239,7 +259,7 @@ mod tests {
     };
     use tower::ServiceExt;
 
-    use super::{forward, CursorProxy};
+    use super::{forward, forward_to_service, CursorProxy};
 
     #[tokio::test]
     async fn preserves_request_and_response() {
@@ -286,6 +306,36 @@ mod tests {
         assert_eq!(
             to_bytes(response.into_body(), usize::MAX).await.unwrap(),
             "PUT a=1 kept payload"
+        );
+        server.abort();
+    }
+
+    #[tokio::test]
+    async fn tab_service_keeps_its_base_path_and_the_original_query() {
+        let upstream = Router::new().route(
+            "/base/aiserver.v1.AiService/StreamCpp",
+            any(|request: Request<Body>| async move {
+                request.uri().path_and_query().unwrap().as_str().to_owned()
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        let server = tokio::spawn(async move { axum::serve(listener, upstream).await.unwrap() });
+        let proxy = CursorProxy::for_upstream("http://unused.invalid").unwrap();
+
+        let response = forward_to_service(
+            &proxy,
+            Request::post("/aiserver.v1.AiService/StreamCpp?client=cursor")
+                .body(Body::empty())
+                .unwrap(),
+            &format!("http://{address}/base"),
+        )
+        .await
+        .unwrap();
+
+        assert_eq!(
+            to_bytes(response.into_body(), usize::MAX).await.unwrap(),
+            "/base/aiserver.v1.AiService/StreamCpp?client=cursor"
         );
         server.abort();
     }

@@ -97,6 +97,13 @@ export interface ProxySettingsInput {
   password?: string;
 }
 
+export type TabMode = "public" | "direct" | "custom";
+
+export interface TabSettings {
+  mode: TabMode;
+  address: string;
+}
+
 export interface OverviewMetrics {
   llm_calls: number;
   successful_calls: number;
@@ -283,4 +290,6 @@ export const api = {
   clearStatisticsStorage: () => request<StatisticsStorage>("/settings/storage/statistics", { method: "DELETE" }),
   proxySettings: () => request<ProxySettings>("/settings/proxy"),
   setProxySettings: (settings: ProxySettingsInput) => request<ProxySettings>("/settings/proxy", { method: "PUT", body: JSON.stringify(settings) }),
+  tabSettings: () => request<TabSettings>("/settings/tab"),
+  setTabSettings: (settings: TabSettings) => request<TabSettings>("/settings/tab", { method: "PUT", body: JSON.stringify(settings) }),
 };

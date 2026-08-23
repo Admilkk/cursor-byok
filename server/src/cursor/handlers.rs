@@ -13,7 +13,7 @@ use crate::{
         observability::CursorTraceRecorder,
         proto::{agent::v1 as agent, aiserver::v1 as ai},
         proxy::{self, CursorProxy},
-        run_sse,
+        run_sse, tab,
     },
     cursor::{CursorParent, CursorSessionRegistry},
     Result,
@@ -70,6 +70,7 @@ fn router_with_proxy(registry: CursorSessionRegistry, proxy: CursorProxy) -> Rou
             post(analytics::bootstrap_statsig),
         )
         .route("/auth/full_stripe_profile", get(account::stripe_profile))
+        .merge(tab::router())
         .route_layer(DefaultBodyLimit::disable())
         .route_layer(RequestDecompressionLayer::new())
         .fallback(proxy::forward)

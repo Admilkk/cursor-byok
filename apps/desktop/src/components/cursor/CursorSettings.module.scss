@@ -1,5 +1,10 @@
 @use "../../styles/typography" as type;
 
+.page {
+  display: grid;
+  gap: 16px;
+}
+
 .gate {
   min-height: 250px;
   display: flex;

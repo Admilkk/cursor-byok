@@ -175,7 +175,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 156,
+          "line": 180,
           "column": 89
         }
       ]
@@ -278,12 +278,12 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 108,
+          "line": 109,
           "column": 47
         },
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 172,
+          "line": 173,
           "column": 15
         }
       ]
@@ -353,7 +353,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 155,
+          "line": 179,
           "column": 36
         },
         {
@@ -440,17 +440,17 @@
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 120,
+          "line": 144,
           "column": 40
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 120,
+          "line": 144,
           "column": 119
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 123,
+          "line": 147,
           "column": 63
         }
       ]
@@ -515,7 +515,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 79,
+          "line": 87,
           "column": 86
         }
       ]
@@ -573,17 +573,17 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 98,
+          "line": 106,
           "column": 32
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 98,
+          "line": 106,
           "column": 119
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 133,
+          "line": 157,
           "column": 44
         }
       ]
@@ -766,7 +766,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 216,
+          "line": 220,
           "column": 14
         }
       ]
@@ -805,12 +805,12 @@
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 217,
+          "line": 221,
           "column": 19
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 133,
+          "line": 157,
           "column": 67
         },
         {
@@ -877,13 +877,25 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 141,
+          "line": 165,
           "column": 70
         },
         {
           "file": "pages/ProvidersPage.tsx",
           "line": 98,
           "column": 70
+        }
+      ]
+    },
+    "2f4a9609285d8f49": {
+      "source": "TAB 设置已保存",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 128,
+          "column": 15
         }
       ]
     },
@@ -932,7 +944,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 133,
+          "line": 157,
           "column": 89
         }
       ]
@@ -944,7 +956,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 218,
+          "line": 222,
           "column": 20
         }
       ]
@@ -1024,12 +1036,12 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 106,
+          "line": 107,
           "column": 50
         },
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 154,
+          "line": 155,
           "column": 15
         }
       ]
@@ -1137,6 +1149,18 @@
         }
       ]
     },
+    "3f6c25aa329163a4": {
+      "source": "原接口路径会追加到此服务地址。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 41,
+          "column": 17
+        }
+      ]
+    },
     "3fd47edce45b3603": {
       "source": "关闭",
       "kind": "text",
@@ -1144,7 +1168,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 126,
+          "line": 150,
           "column": 71
         }
       ]
@@ -1168,12 +1192,12 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 105,
+          "line": 106,
           "column": 46
         },
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 145,
+          "line": 146,
           "column": 15
         }
       ]
@@ -1338,8 +1362,8 @@
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 197,
-          "column": 84
+          "line": 194,
+          "column": 67
         }
       ]
     },
@@ -1348,6 +1372,11 @@
       "kind": "text",
       "placeholders": [],
       "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 32,
+          "column": 39
+        },
         {
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
           "line": 89,
@@ -1386,6 +1415,18 @@
           "file": "components/overview/OverviewTimeRangeFilter.tsx",
           "line": 110,
           "column": 70
+        }
+      ]
+    },
+    "5401344227e49e2f": {
+      "source": "TAB 设置",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 17,
+          "column": 90
         }
       ]
     },
@@ -1449,8 +1490,37 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 120,
+          "line": 144,
           "column": 52
+        }
+      ]
+    },
+    "59346e82b3dd2998": {
+      "source": "TAB 服务地址",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 40,
+          "column": 18
+        },
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 47,
+          "column": 21
+        }
+      ]
+    },
+    "5a3bd99fa69a40c1": {
+      "source": "使用公益服务",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 30,
+          "column": 39
         }
       ]
     },
@@ -1502,7 +1572,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 222,
+          "line": 226,
           "column": 11
         }
       ]
@@ -1528,12 +1598,12 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 107,
+          "line": 108,
           "column": 51
         },
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 163,
+          "line": 164,
           "column": 15
         }
       ]
@@ -1614,7 +1684,7 @@
       "refs": [
         {
           "file": "api.ts",
-          "line": 265,
+          "line": 272,
           "column": 43
         }
       ]
@@ -1876,7 +1946,7 @@
       "refs": [
         {
           "file": "api.ts",
-          "line": 260,
+          "line": 267,
           "column": 43
         }
       ]
@@ -1916,6 +1986,18 @@
           "file": "App.tsx",
           "line": 53,
           "column": 19
+        }
+      ]
+    },
+    "7e0891860c9e6374": {
+      "source": "TAB 服务地址不能为空",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "pages/CursorSettingsPage.tsx",
+          "line": 125,
+          "column": 83
         }
       ]
     },
@@ -2003,7 +2085,7 @@
       "refs": [
         {
           "file": "api.ts",
-          "line": 214,
+          "line": 221,
           "column": 21
         }
       ]
@@ -2049,7 +2131,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 150,
+          "line": 174,
           "column": 21
         }
       ]
@@ -2158,8 +2240,20 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 224,
+          "line": 228,
           "column": 16
+        }
+      ]
+    },
+    "8f9b0d6cc477d334": {
+      "source": "控制 Cursor TAB 相关接口的连接方式。",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 23,
+          "column": 17
         }
       ]
     },
@@ -2172,7 +2266,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 142,
+          "line": 166,
           "column": 87
         },
         {
@@ -2237,7 +2331,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 134,
+          "line": 158,
           "column": 11
         }
       ]
@@ -2275,6 +2369,23 @@
           "file": "components/cursor/CursorGates.tsx",
           "line": 21,
           "column": 28
+        }
+      ]
+    },
+    "966498853d801a52": {
+      "source": "TAB 选择",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 22,
+          "column": 18
+        },
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 28,
+          "column": 22
         }
       ]
     },
@@ -2435,6 +2546,11 @@
       "placeholders": [],
       "refs": [
         {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 18,
+          "column": 109
+        },
+        {
           "file": "components/settings/ProxySettingsCard.tsx",
           "line": 33,
           "column": 103
@@ -2482,7 +2598,7 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 186,
+          "line": 187,
           "column": 24
         }
       ]
@@ -2680,13 +2796,25 @@
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 237,
+          "line": 241,
           "column": 64
         },
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 237,
+          "line": 241,
           "column": 125
+        }
+      ]
+    },
+    "b06325c5660f0c29": {
+      "source": "直连",
+      "kind": "text",
+      "placeholders": [],
+      "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 31,
+          "column": 39
         }
       ]
     },
@@ -2788,7 +2916,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 126,
+          "line": 150,
           "column": 93
         }
       ]
@@ -2892,7 +3020,7 @@
       "refs": [
         {
           "file": "layouts/AppLayout.tsx",
-          "line": 229,
+          "line": 233,
           "column": 24
         }
       ]
@@ -3000,17 +3128,17 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 97,
+          "line": 105,
           "column": 32
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 97,
+          "line": 105,
           "column": 95
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 123,
+          "line": 147,
           "column": 51
         }
       ]
@@ -3198,7 +3326,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 77,
+          "line": 85,
           "column": 45
         }
       ]
@@ -3292,7 +3420,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 128,
+          "line": 152,
           "column": 18
         }
       ]
@@ -3328,7 +3456,7 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 104,
+          "line": 105,
           "column": 14
         }
       ]
@@ -3465,7 +3593,7 @@
       "refs": [
         {
           "file": "components/charts/DailyTokenUsageChart.tsx",
-          "line": 134,
+          "line": 135,
           "column": 15
         }
       ]
@@ -3542,7 +3670,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 78,
+          "line": 86,
           "column": 72
         }
       ]
@@ -3619,7 +3747,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 129,
+          "line": 153,
           "column": 16
         }
       ]
@@ -3648,7 +3776,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 126,
+          "line": 150,
           "column": 45
         }
       ]
@@ -3665,7 +3793,7 @@
         },
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 122,
+          "line": 146,
           "column": 25
         }
       ]
@@ -3701,7 +3829,7 @@
       "refs": [
         {
           "file": "pages/CursorSettingsPage.tsx",
-          "line": 54,
+          "line": 62,
           "column": 187
         },
         {
@@ -3995,6 +4123,11 @@
       "kind": "text",
       "placeholders": [],
       "refs": [
+        {
+          "file": "components/cursor/TabSettingsCard.tsx",
+          "line": 18,
+          "column": 97
+        },
         {
           "file": "components/settings/ProxySettingsCard.tsx",
           "line": 33,

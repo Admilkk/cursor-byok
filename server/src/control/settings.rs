@@ -1,7 +1,9 @@
 use crate::Result;
 use axum::{extract::State, Json};
 
-use crate::store::{PortSettings, ProxySettings, ProxySettingsInput, StatisticsStorage};
+use crate::store::{
+    PortSettings, ProxySettings, ProxySettingsInput, StatisticsStorage, TabSettings,
+};
 
 use super::{ControlService, ObservabilitySettings};
 
@@ -46,4 +48,15 @@ pub async fn update_proxy(
     Json(settings): Json<ProxySettingsInput>,
 ) -> Result<Json<ProxySettings>> {
     Ok(Json(service.set_proxy_settings(settings).await?))
+}
+
+pub async fn get_tab(State(service): State<ControlService>) -> Result<Json<TabSettings>> {
+    Ok(Json(service.tab_settings().await?))
+}
+
+pub async fn update_tab(
+    State(service): State<ControlService>,
+    Json(settings): Json<TabSettings>,
+) -> Result<Json<TabSettings>> {
+    Ok(Json(service.set_tab_settings(settings).await?))
 }

@@ -156,6 +156,10 @@ pub fn api_router(service: ControlService) -> Router {
             get(settings::get_proxy).put(settings::update_proxy),
         )
         .route(
+            "/__byok-api__/api/settings/tab",
+            get(settings::get_tab).put(settings::update_tab),
+        )
+        .route(
             "/__byok-api__/api/harness/cursor/status",
             get(harness::status),
         )

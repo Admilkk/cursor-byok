@@ -22,6 +22,7 @@ pub mod request;
 pub mod run_sse;
 pub mod session;
 pub mod sessions;
+pub(crate) mod tab;
 pub mod tools;
 mod usage;
 
