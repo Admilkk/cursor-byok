@@ -27,6 +27,12 @@ struct ResponseToolState {
     ended: bool,
 }
 
+enum ResponseToolArguments<'a> {
+    None,
+    Delta(&'a str),
+    Snapshot(&'a str),
+}
+
 pub struct OpenAiResponsesProvider {
     client: reqwest::Client,
     config: ProviderConfig,
@@ -152,7 +158,7 @@ impl Provider for OpenAiResponsesProvider {
                         if item.get("type").and_then(Value::as_str) == Some("function_call") {
                             let index = required_u64(&value, "output_index")? as usize;
                             saw_tool = true;
-                            for event in update_response_tool(index, item, None, false, &mut tools)? { yield event; }
+                            for event in update_response_tool(index, item, ResponseToolArguments::None, false, &mut tools)? { yield event; }
                         }
                     }
                     "response.output_item.done" => {
@@ -172,8 +178,11 @@ impl Provider for OpenAiResponsesProvider {
                             Some("function_call") => {
                                 let index = required_u64(&value, "output_index")? as usize;
                                 saw_tool = true;
-                                let final_arguments = item.get("arguments").and_then(Value::as_str);
-                                for event in update_response_tool(index, item, final_arguments, true, &mut tools)? { yield event; }
+                                let arguments = item
+                                    .get("arguments")
+                                    .and_then(Value::as_str)
+                                    .map_or(ResponseToolArguments::None, ResponseToolArguments::Snapshot);
+                                for event in update_response_tool(index, item, arguments, true, &mut tools)? { yield event; }
                             }
                             _ => {}
                         }
@@ -182,13 +191,16 @@ impl Provider for OpenAiResponsesProvider {
                         let index = required_u64(&value, "output_index")? as usize;
                         if let Some(delta) = value.get("delta").and_then(Value::as_str) {
                             saw_tool = true;
-                            for event in update_response_tool(index, &Value::Null, Some(delta), false, &mut tools)? { yield event; }
+                            for event in update_response_tool(index, &Value::Null, ResponseToolArguments::Delta(delta), false, &mut tools)? { yield event; }
                         }
                     }
                     "response.function_call_arguments.done" => {
                         let index = required_u64(&value, "output_index")? as usize;
-                        let final_arguments = value.get("arguments").and_then(Value::as_str);
-                        for event in update_response_tool(index, &Value::Null, final_arguments, true, &mut tools)? { yield event; }
+                        let arguments = value
+                            .get("arguments")
+                            .and_then(Value::as_str)
+                            .map_or(ResponseToolArguments::None, ResponseToolArguments::Snapshot);
+                        for event in update_response_tool(index, &Value::Null, arguments, true, &mut tools)? { yield event; }
                     }
                     "response.completed" => {
                         if let Some(usage) = value.pointer("/response/usage") { yield ModelEvent::Usage(responses_usage(usage)); }
@@ -208,8 +220,11 @@ impl Provider for OpenAiResponsesProvider {
                                     }
                                     Some("function_call") => {
                                         saw_tool = true;
-                                        let final_arguments = item.get("arguments").and_then(Value::as_str);
-                                        for event in update_response_tool(index, item, final_arguments, true, &mut tools)? { yield event; }
+                                        let arguments = item
+                                            .get("arguments")
+                                            .and_then(Value::as_str)
+                                            .map_or(ResponseToolArguments::None, ResponseToolArguments::Snapshot);
+                                        for event in update_response_tool(index, item, arguments, true, &mut tools)? { yield event; }
                                     }
                                     _ => {}
                                 }
@@ -303,7 +318,7 @@ fn reconcile_response_text(
 fn update_response_tool(
     index: usize,
     item: &Value,
-    arguments: Option<&str>,
+    arguments: ResponseToolArguments<'_>,
     done: bool,
     tools: &mut std::collections::BTreeMap<usize, ResponseToolState>,
 ) -> Result<Vec<ModelEvent>> {
@@ -314,11 +329,17 @@ fn update_response_tool(
     if let Some(name) = item.get("name").and_then(Value::as_str) {
         tool.name.get_or_insert_with(|| name.into());
     }
-    if let Some(arguments) = arguments {
-        if arguments.starts_with(&tool.arguments) {
-            tool.arguments.push_str(&arguments[tool.arguments.len()..]);
-        } else if !tool.arguments.ends_with(arguments) {
-            tool.arguments.push_str(arguments);
+    match arguments {
+        ResponseToolArguments::None => {}
+        ResponseToolArguments::Delta(delta) => tool.arguments.push_str(delta),
+        ResponseToolArguments::Snapshot(snapshot) if snapshot == tool.arguments => {}
+        ResponseToolArguments::Snapshot(snapshot) if snapshot.starts_with(&tool.arguments) => {
+            tool.arguments.push_str(&snapshot[tool.arguments.len()..]);
+        }
+        ResponseToolArguments::Snapshot(_) => {
+            return Err(Error::Provider(
+                "OpenAI Responses final tool arguments do not match streamed arguments".into(),
+            ));
         }
     }
 
@@ -509,8 +530,11 @@ fn responses_usage(value: &Value) -> Usage {
 
 #[cfg(test)]
 mod tests {
-    use super::responses_input;
+    use std::collections::BTreeMap;
+
+    use super::{responses_input, update_response_tool, ResponseToolArguments, ResponseToolState};
     use crate::model::{ContentPart, ProjectedContent, ProjectedMessage, Role, ToolResultContent};
+    use crate::provider::ModelEvent;
 
     #[test]
     fn read_image_stays_in_its_function_call_output() {
@@ -541,5 +565,72 @@ mod tests {
         assert_eq!(input[0]["output"][0]["type"], "input_text");
         assert_eq!(input[0]["output"][1]["type"], "input_image");
         assert_eq!(input[0]["output"][1]["detail"], "auto");
+    }
+
+    #[test]
+    fn tool_argument_deltas_are_ordered_bytes_and_final_snapshots_are_idempotent() {
+        let item = serde_json::json!({"call_id": "call-1", "name": "Shell"});
+        let mut tools = BTreeMap::<usize, ResponseToolState>::new();
+        let mut events = update_response_tool(
+            0,
+            &item,
+            ResponseToolArguments::Delta(r#"{"block_until_ms":300"#),
+            false,
+            &mut tools,
+        )
+        .unwrap();
+        events.extend(
+            update_response_tool(
+                0,
+                &item,
+                ResponseToolArguments::Delta("00"),
+                false,
+                &mut tools,
+            )
+            .unwrap(),
+        );
+        events.extend(
+            update_response_tool(
+                0,
+                &item,
+                ResponseToolArguments::Delta("}"),
+                false,
+                &mut tools,
+            )
+            .unwrap(),
+        );
+        events.extend(
+            update_response_tool(
+                0,
+                &item,
+                ResponseToolArguments::Snapshot(r#"{"block_until_ms":30000}"#),
+                true,
+                &mut tools,
+            )
+            .unwrap(),
+        );
+
+        let arguments = events
+            .iter()
+            .filter_map(|event| match event {
+                ModelEvent::ToolCallArgumentsDelta { delta, .. } => Some(delta.as_str()),
+                _ => None,
+            })
+            .collect::<String>();
+        assert_eq!(arguments, r#"{"block_until_ms":30000}"#);
+        assert_eq!(
+            serde_json::from_str::<serde_json::Value>(&arguments).unwrap()["block_until_ms"],
+            30000
+        );
+
+        assert!(update_response_tool(
+            0,
+            &item,
+            ResponseToolArguments::Snapshot(r#"{"block_until_ms":30000}"#),
+            true,
+            &mut tools,
+        )
+        .unwrap()
+        .is_empty());
     }
 }

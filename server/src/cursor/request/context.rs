@@ -459,22 +459,34 @@ pub fn dynamic_mcp(
                 Error::Protocol(format!("MCP tool {} is missing input schema", wire.name))
             })?),
         };
+        let name = model_tool_name(&wire.name);
         let definition = ToolDefinition {
-            name: wire.name.clone(),
+            name: name.clone(),
             description: wire.description.clone(),
             parameters,
         };
         if output
-            .insert(wire.name.clone(), (wire.clone(), definition))
+            .insert(name.clone(), (wire.clone(), definition))
             .is_some()
         {
             return Err(Error::Protocol(format!(
-                "duplicate MCP tool definition: {}",
-                wire.name
+                "duplicate MCP tool name after normalization: {name}"
             )));
         }
     }
     Ok(output)
+}
+
+fn model_tool_name(name: &str) -> String {
+    name.chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric() || matches!(character, '_' | '-') {
+                character
+            } else {
+                '_'
+            }
+        })
+        .collect()
 }
 
 fn prost_value(value: &prost_types::Value) -> Value {
@@ -510,6 +522,58 @@ fn xml(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn direct_mcp_tool(name: &str) -> pb::McpToolDefinition {
+        pb::McpToolDefinition {
+            name: name.into(),
+            provider_identifier: "extension-GitKraken".into(),
+            tool_name: "git_status".into(),
+            description: "Get repository status".into(),
+            input_schema_json: Some(r#"{"type":"object"}"#.into()),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn dynamic_mcp_normalizes_extension_identifier_for_model_tool_names() {
+        let original = "user-eamodio.gitlens-extension-GitKraken-git_status";
+        let request = pb::AgentRunRequest {
+            mcp_tools: Some(pb::McpTools {
+                mcp_tools: vec![direct_mcp_tool(original)],
+            }),
+            ..Default::default()
+        };
+
+        let tools = dynamic_mcp(&request, &pb::RequestContext::default()).unwrap();
+        let normalized = "user-eamodio_gitlens-extension-GitKraken-git_status";
+        let (wire, definition) = tools.get(normalized).unwrap();
+
+        assert_eq!(definition.name, normalized);
+        assert_eq!(wire.name, original);
+        assert_eq!(wire.provider_identifier, "extension-GitKraken");
+        assert_eq!(wire.tool_name, "git_status");
+        assert!(normalized
+            .chars()
+            .all(|character| character.is_ascii_alphanumeric() || matches!(character, '_' | '-')));
+    }
+
+    #[test]
+    fn dynamic_mcp_rejects_names_that_collide_after_normalization() {
+        let request = pb::AgentRunRequest {
+            mcp_tools: Some(pb::McpTools {
+                mcp_tools: vec![
+                    direct_mcp_tool("server.name-tool"),
+                    direct_mcp_tool("server_name-tool"),
+                ],
+            }),
+            ..Default::default()
+        };
+
+        let error = dynamic_mcp(&request, &pb::RequestContext::default()).unwrap_err();
+        assert!(error
+            .to_string()
+            .contains("duplicate MCP tool name after normalization: server_name-tool"));
+    }
 
     #[test]
     fn meta_mcp_routes_projects_descriptor_routing_without_runtime_discovery() {

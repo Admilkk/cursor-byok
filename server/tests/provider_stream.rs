@@ -425,6 +425,38 @@ async fn openai_responses_item_done_closes_text_and_tool_arguments() {
 }
 
 #[tokio::test]
+async fn openai_responses_preserves_delta_that_repeats_the_streamed_suffix() {
+    let (base_url, _requests, server) = fixture_server(
+        "/v1/responses",
+        concat!(
+            "data: {\"type\":\"response.output_item.added\",\"output_index\":0,\"item\":{\"type\":\"function_call\",\"call_id\":\"call-1\",\"name\":\"Shell\"}}\n\n",
+            "data: {\"type\":\"response.function_call_arguments.delta\",\"output_index\":0,\"delta\":\"{\\\"block_until_ms\\\":300\"}\n\n",
+            "data: {\"type\":\"response.function_call_arguments.delta\",\"output_index\":0,\"delta\":\"00\"}\n\n",
+            "data: {\"type\":\"response.function_call_arguments.delta\",\"output_index\":0,\"delta\":\"}\"}\n\n",
+            "data: {\"type\":\"response.function_call_arguments.done\",\"output_index\":0,\"arguments\":\"{\\\"block_until_ms\\\":30000}\"}\n\n",
+            "data: {\"type\":\"response.output_item.done\",\"output_index\":0,\"item\":{\"type\":\"function_call\",\"call_id\":\"call-1\",\"name\":\"Shell\",\"arguments\":\"{\\\"block_until_ms\\\":30000}\"}}\n\n",
+            "data: {\"type\":\"response.completed\",\"response\":{}}\n\n",
+        ),
+    )
+    .await;
+    let provider = OpenAiResponsesProvider::new(
+        reqwest::Client::new(),
+        config(ProviderKind::OpenAiResponses, base_url, None),
+    );
+    let (sender, _receiver) = tokio::sync::mpsc::channel(32);
+
+    let result = consume_model_cycle(
+        provider.stream(invocation(), CancellationToken::new()),
+        &sender,
+        &CancellationToken::new(),
+    )
+    .await;
+    server.abort();
+
+    assert_eq!(result.unwrap().calls[0].arguments["block_until_ms"], 30000);
+}
+
+#[tokio::test]
 async fn openai_responses_completed_object_recovers_missing_item_events() {
     let (base_url, _requests, server) = fixture_server(
         "/v1/responses",
