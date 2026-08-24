@@ -46,8 +46,11 @@ impl CursorActor {
             let (results_tx, results_rx) = tool_result_channel();
             let (runtime_actions_tx, runtime_actions_rx) = mpsc::unbounded_channel();
             let tool_runtime = CursorToolRuntime::default();
-            let context_sync =
-                RequestContextSynchronizer::new(handle.clone(), dependencies.store.clone());
+            let context_sync = RequestContextSynchronizer::new(
+                handle.clone(),
+                dependencies.store.clone(),
+                blob_sync.clone(),
+            );
             let tools = ToolDispatcher::with_results(tool_runtime.clone(), results_tx.clone());
             let mut run_resources = Some((results_rx, runtime_actions_rx, dependencies));
             loop {

@@ -328,10 +328,14 @@ async fn missing_context_parts_use_current_cursor_response_and_cache_its_content
                 seqno += 1;
             }
             Some(pb::agent_server_message::Message::KvServerMessage(kv)) => {
+                let response = match kv.message {
+                    Some(pb::kv_server_message::Message::GetBlobArgs(_)) => kv_get_missing(kv.id),
+                    _ => kv_ack(kv.id),
+                };
                 handle
                     .command(CursorCommand::Append {
                         seqno,
-                        message: Box::new(kv_ack(kv.id)),
+                        message: Box::new(response),
                     })
                     .await
                     .unwrap();
@@ -574,6 +578,22 @@ fn kv_ack(id: u32) -> pb::AgentClientMessage {
                 id,
                 message: Some(pb::kv_client_message::Message::SetBlobResult(
                     pb::SetBlobResult { error: None },
+                )),
+            },
+        )),
+    }
+}
+
+fn kv_get_missing(id: u32) -> pb::AgentClientMessage {
+    pb::AgentClientMessage {
+        message: Some(pb::agent_client_message::Message::KvClientMessage(
+            pb::KvClientMessage {
+                id,
+                message: Some(pb::kv_client_message::Message::GetBlobResult(
+                    pb::GetBlobResult {
+                        blob_data: None,
+                        error: None,
+                    },
                 )),
             },
         )),

@@ -4,7 +4,7 @@ use prost::Message;
 use tokio::sync::{oneshot, Mutex};
 
 use crate::{
-    cursor::{proto::agent::v1 as pb, CursorSessionHandle},
+    cursor::{blob_sync::BlobSynchronizer, proto::agent::v1 as pb, CursorSessionHandle},
     store::{BlobId, Store},
     Error, Result,
 };
@@ -15,14 +15,16 @@ type ContextSender = oneshot::Sender<Result<pb::RequestContext>>;
 pub(crate) struct RequestContextSynchronizer {
     handle: CursorSessionHandle,
     store: Store,
+    blobs: BlobSynchronizer,
     pending: Arc<Mutex<Option<ContextSender>>>,
 }
 
 impl RequestContextSynchronizer {
-    pub(crate) fn new(handle: CursorSessionHandle, store: Store) -> Self {
+    pub(crate) fn new(handle: CursorSessionHandle, store: Store, blobs: BlobSynchronizer) -> Self {
         Self {
             handle,
             store,
+            blobs,
             pending: Arc::new(Mutex::new(None)),
         }
     }
@@ -32,7 +34,7 @@ impl RequestContextSynchronizer {
         references: &pb::RequestContextPartReferences,
         conversation_id: &str,
     ) -> Result<Option<pb::RequestContext>> {
-        if !self.has_missing_part(references).await? {
+        if !self.fetch_missing_parts(references).await? {
             return Ok(None);
         }
         let context = self.load(conversation_id).await?;
@@ -149,7 +151,7 @@ impl RequestContextSynchronizer {
         true
     }
 
-    async fn has_missing_part(&self, parts: &pb::RequestContextPartReferences) -> Result<bool> {
+    async fn fetch_missing_parts(&self, parts: &pb::RequestContextPartReferences) -> Result<bool> {
         for raw_id in [
             parts.rules_blob_id.as_slice(),
             parts.skills_blob_id.as_slice(),
@@ -160,7 +162,7 @@ impl RequestContextSynchronizer {
                 continue;
             }
             let id = BlobId::from_bytes(raw_id)?;
-            if self.store.get_blob(&id).await?.is_none() {
+            if self.store.get_blob(&id).await?.is_none() && self.blobs.get(&id).await?.is_none() {
                 return Ok(true);
             }
         }
