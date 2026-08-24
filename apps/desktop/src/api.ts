@@ -56,6 +56,15 @@ export interface ModelInput {
   supports_image_generation: boolean;
 }
 
+export interface ModelConnectivityResult {
+  duration_ms: number;
+  first_text_ms: number | null;
+  output_tokens: number;
+  tokens_per_second: number;
+  tokens_estimated: boolean;
+  output: string;
+}
+
 export type CaState = "missing" | "untrusted" | "ready" | "invalid" | "unsupported";
 export type IntegrationState = "disabled" | "enabled" | "degraded";
 export interface CursorHarnessStatus {
@@ -221,7 +230,14 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(t("无法连接本地管理服务"), { cause });
   }
   if (!response.ok) {
-    const message = await response.text();
+    const body = await response.text();
+    let message = body;
+    try {
+      const parsed = JSON.parse(body) as { message?: unknown };
+      if (typeof parsed.message === "string") message = parsed.message;
+    } catch {
+      // Plain-text errors are already suitable for display.
+    }
     throw new Error(message || `${response.status} ${response.statusText}`);
   }
   if (response.status === 204) return undefined as T;
@@ -248,6 +264,7 @@ export const api = {
   models: () => request<Model[]>("/models"),
   updateModel: (hash: string, model: ModelInput) => request<Model>(`/models/${hash}`, { method: "PUT", body: JSON.stringify(model) }),
   deleteModel: (hash: string) => request<void>(`/models/${hash}`, { method: "DELETE" }),
+  testModel: (hash: string) => request<ModelConnectivityResult>(`/models/${hash}/test`, { method: "POST" }),
   overview: (filter?: { startMs: number; endMs: number; modelHashes?: string[]; providerIds?: number[] }) => {
     const params = new URLSearchParams();
     if (filter) {

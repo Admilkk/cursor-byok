@@ -1,8 +1,10 @@
-use std::collections::BTreeSet;
+use std::{collections::BTreeSet, sync::Arc, time::Instant};
 
 use base64::{engine::general_purpose::STANDARD, Engine};
+use futures_util::StreamExt;
 use reqwest::header::{HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
+use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use super::ads::{
@@ -13,10 +15,12 @@ use super::ads::{
 use crate::{
     harness::CursorHarness,
     model::{
-        CursorRunTraceArtifact, CursorRunTraceSummary, LlmCallRequest, LlmCallResponseChunk,
-        LlmCallSummary, Overview, ProviderEndpoint, ProviderEndpointInput, ProviderEndpointSecret,
-        ProviderModel, ProviderModelInput, ProviderType,
+        ContentPart, CursorRunTraceArtifact, CursorRunTraceSummary, LlmCallRequest,
+        LlmCallResponseChunk, LlmCallSummary, ModelInvocation, ModelRequest, ModelSpec, Overview,
+        ProjectedContent, ProjectedMessage, PromptSpec, ProviderEndpoint, ProviderEndpointInput,
+        ProviderEndpointSecret, ProviderModel, ProviderModelInput, ProviderType, Role,
     },
+    provider::{ModelEvent, Provider},
     store::{
         PortSettings, ProxySettings, ProxySettingsInput, StatisticsStorage, Store, TabSettings,
     },
@@ -27,11 +31,22 @@ use crate::{
 pub struct ControlService {
     store: Store,
     cursor_harness: CursorHarness,
+    provider: Arc<dyn Provider>,
 }
 
 #[derive(Clone, Debug, Serialize)]
 pub struct DiscoveredModels {
     pub models: Vec<String>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+pub struct ModelConnectivityResult {
+    pub duration_ms: u64,
+    pub first_text_ms: Option<u64>,
+    pub output_tokens: u64,
+    pub tokens_per_second: f64,
+    pub tokens_estimated: bool,
+    pub output: String,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -74,10 +89,11 @@ pub struct ObservabilitySettings {
 }
 
 impl ControlService {
-    pub fn new(store: Store) -> Result<Self> {
+    pub fn new(store: Store, provider: Arc<dyn Provider>) -> Result<Self> {
         Ok(Self {
             cursor_harness: CursorHarness::new(store.clone())?,
             store,
+            provider,
         })
     }
 
@@ -200,6 +216,125 @@ impl ControlService {
         input: &ProviderModelInput,
     ) -> Result<ProviderModel> {
         self.store.update_provider_model(model_hash, input).await
+    }
+
+    pub async fn test_model(&self, model_hash: &str) -> Result<ModelConnectivityResult> {
+        const TEST_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(45);
+        const TEST_PROMPT: &str = "Output the numbers 1 through 120 separated by a single space. No commas, no newlines, no explanation.";
+
+        let configured = self
+            .store
+            .provider_model(model_hash)
+            .await?
+            .ok_or_else(|| Error::RunNotFound(format!("model {model_hash}")))?;
+        let mut model = ModelSpec::new(model_hash);
+        if configured.reasoning_enabled {
+            model.reasoning.enabled = true;
+            model.reasoning.effort = Some(
+                configured
+                    .reasoning_effort
+                    .filter(|effort| !effort.trim().is_empty())
+                    .unwrap_or_else(|| "medium".into()),
+            );
+        }
+        let test_id = format!("model-test-{}", uuid::Uuid::new_v4());
+        let call_id = test_id.clone();
+        let invocation = ModelInvocation {
+            call_id: test_id.clone(),
+            run_id: test_id.clone(),
+            conversation_id: test_id,
+            provider_call_index: 0,
+            request: ModelRequest {
+                prompt: PromptSpec {
+                    instructions: String::new(),
+                    tools: Vec::new(),
+                },
+                model,
+                history: vec![ProjectedMessage {
+                    message_id: "connectivity-test".into(),
+                    role: Role::User,
+                    content: ProjectedContent::Parts(vec![ContentPart::Text {
+                        text: TEST_PROMPT.into(),
+                    }]),
+                }],
+            },
+        };
+        let cancellation = CancellationToken::new();
+        let started = Instant::now();
+        let mut first_text_at = None;
+        let mut output_tokens = None;
+        let mut output = String::new();
+        let stream = self.provider.stream(invocation, cancellation.clone());
+        let completed = tokio::time::timeout(TEST_TIMEOUT, async {
+            futures_util::pin_mut!(stream);
+            let mut finished = false;
+            while let Some(event) = stream.next().await {
+                match event? {
+                    ModelEvent::TextDelta(delta) => {
+                        if first_text_at.is_none() && !delta.trim().is_empty() {
+                            first_text_at = Some(Instant::now());
+                        }
+                        output.push_str(&delta);
+                    }
+                    ModelEvent::Usage(usage) => {
+                        if let Some(tokens) = usage.output_tokens.filter(|tokens| *tokens > 0) {
+                            output_tokens = Some(
+                                output_tokens.map_or(tokens, |current: u64| current.max(tokens)),
+                            );
+                        }
+                    }
+                    ModelEvent::Done(_) => finished = true,
+                    _ => {}
+                }
+            }
+            if !finished {
+                return Err(Error::Protocol(
+                    "provider stream ended without Done during connectivity test".into(),
+                ));
+            }
+            Ok(())
+        })
+        .await;
+        match completed {
+            Ok(result) => result?,
+            Err(_) => {
+                cancellation.cancel();
+                self.store
+                    .finish_llm_call(
+                        &call_id,
+                        "error",
+                        None,
+                        started.elapsed().as_millis().min(i64::MAX as u128) as i64,
+                        Some("timeout"),
+                        Some("model connectivity test timed out after 45 seconds"),
+                    )
+                    .await?;
+                return Err(Error::Provider(
+                    "model connectivity test timed out after 45 seconds".into(),
+                ));
+            }
+        }
+        let elapsed = started.elapsed();
+        let output = output.trim().to_string();
+        let tokens_estimated = output_tokens.is_none();
+        let output_tokens = output_tokens.unwrap_or_else(|| estimate_output_tokens(&output));
+        Ok(ModelConnectivityResult {
+            duration_ms: elapsed.as_millis().min(u128::from(u64::MAX)) as u64,
+            first_text_ms: first_text_at.map(|first| {
+                first
+                    .duration_since(started)
+                    .as_millis()
+                    .min(u128::from(u64::MAX)) as u64
+            }),
+            output_tokens,
+            tokens_per_second: if elapsed.is_zero() {
+                0.0
+            } else {
+                output_tokens as f64 / elapsed.as_secs_f64()
+            },
+            tokens_estimated,
+            output,
+        })
     }
 
     pub async fn create_provider_with_models(
@@ -553,6 +688,17 @@ fn model_ids(value: &serde_json::Value) -> Vec<String> {
         .collect()
 }
 
+fn estimate_output_tokens(output: &str) -> u64 {
+    let words = output.split_whitespace().count() as u64;
+    if words > 0 {
+        words
+    } else if output.is_empty() {
+        0
+    } else {
+        ((output.chars().count() as u64) + 3) / 4
+    }
+}
+
 fn apply_custom_headers(
     mut request: reqwest::RequestBuilder,
     headers: &serde_json::Value,
@@ -571,4 +717,125 @@ fn apply_custom_headers(
         request = request.header(name, value);
     }
     Ok(request)
+}
+
+#[cfg(test)]
+mod tests {
+    use std::sync::{Arc, Mutex};
+
+    use tokio_util::sync::CancellationToken;
+
+    use crate::{
+        model::{
+            ModelInvocation, ProjectedContent, ProviderEndpointInput, ProviderModelInput,
+            ProviderType,
+        },
+        provider::{FinishReason, ModelEvent, Provider, ProviderStream},
+        store::Store,
+    };
+
+    use super::ControlService;
+
+    struct TestProvider {
+        invocation: Arc<Mutex<Option<ModelInvocation>>>,
+    }
+
+    impl Provider for TestProvider {
+        fn stream(
+            &self,
+            invocation: ModelInvocation,
+            _cancellation: CancellationToken,
+        ) -> ProviderStream {
+            *self.invocation.lock().unwrap() = Some(invocation);
+            Box::pin(futures_util::stream::iter([
+                Ok(ModelEvent::Start {
+                    model_call_id: "test-call".into(),
+                }),
+                Ok(ModelEvent::TextStart),
+                Ok(ModelEvent::TextDelta("OK".into())),
+                Ok(ModelEvent::TextEnd),
+                Ok(ModelEvent::Usage(crate::model::Usage {
+                    output_tokens: Some(2),
+                    ..Default::default()
+                })),
+                Ok(ModelEvent::Done(FinishReason::Stop)),
+            ]))
+        }
+    }
+
+    #[tokio::test]
+    async fn connectivity_test_uses_the_configured_llm_provider() {
+        let directory = tempfile::tempdir().unwrap();
+        let store = Store::connect(&format!(
+            "sqlite://{}",
+            directory.path().join("control.db").display()
+        ))
+        .await
+        .unwrap();
+        let invocation = Arc::new(Mutex::new(None));
+        let provider = store
+            .create_provider(&ProviderEndpointInput {
+                name: "Test".into(),
+                provider_type: ProviderType::OpenAiResponses,
+                base_url: "https://example.com/v1".into(),
+                api_key: None,
+                custom_headers: serde_json::json!({}),
+                extra_params: serde_json::json!({}),
+            })
+            .await
+            .unwrap();
+        let model = store
+            .save_provider_model(
+                provider.provider_id,
+                &ProviderModelInput {
+                    model_id: "reasoning-model".into(),
+                    display_name: "Reasoning Model".into(),
+                    endpoint_type: ProviderType::OpenAiResponses,
+                    request_url: String::new(),
+                    enabled: true,
+                    sort_order: 0,
+                    context_window_tokens: None,
+                    max_output_tokens: None,
+                    reasoning_enabled: true,
+                    reasoning_effort: None,
+                    supports_image_generation: false,
+                },
+            )
+            .await
+            .unwrap();
+        let service = ControlService::new(
+            store,
+            Arc::new(TestProvider {
+                invocation: invocation.clone(),
+            }),
+        )
+        .unwrap();
+
+        let result = service.test_model(&model.model_hash).await.unwrap();
+
+        assert_eq!(result.output, "OK");
+        assert_eq!(result.output_tokens, 2);
+        assert!(!result.tokens_estimated);
+        assert!(result.tokens_per_second > 0.0);
+        let invocation = invocation.lock().unwrap().clone().unwrap();
+        assert_eq!(invocation.request.model.model_id, model.model_hash);
+        assert!(invocation.request.model.reasoning.enabled);
+        assert_eq!(
+            invocation.request.model.reasoning.effort.as_deref(),
+            Some("medium")
+        );
+        assert!(invocation.request.prompt.tools.is_empty());
+        assert_eq!(invocation.request.history.len(), 1);
+        assert!(matches!(
+            &invocation.request.history[0].content,
+            ProjectedContent::Parts(parts)
+                if matches!(&parts[..], [crate::model::ContentPart::Text { text }] if text == "Output the numbers 1 through 120 separated by a single space. No commas, no newlines, no explanation.")
+        ));
+    }
+
+    #[test]
+    fn connectivity_output_token_estimate_handles_words_and_empty_text() {
+        assert_eq!(super::estimate_output_tokens("1 2 3"), 3);
+        assert_eq!(super::estimate_output_tokens(""), 0);
+    }
 }

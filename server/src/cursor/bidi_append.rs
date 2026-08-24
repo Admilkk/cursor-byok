@@ -1,6 +1,7 @@
 use prost::Message;
 
 use crate::{
+    cursor::interaction,
     cursor::proto::{agent::v1 as agent, aiserver::v1 as ai},
     cursor::{CursorCommand, CursorParent, CursorSessionRegistry},
     Error, Result,
@@ -165,6 +166,12 @@ pub async fn append(
     let handle = registry.get_or_create(&request.request_id).await?;
     if let Some(parent) = parent {
         handle.set_parent(parent)?;
+    }
+    if matches!(
+        request.message.message.as_ref(),
+        Some(agent::agent_client_message::Message::ClientHeartbeat(_))
+    ) {
+        handle.emit(&interaction::heartbeat())?;
     }
     handle
         .command(CursorCommand::Append {

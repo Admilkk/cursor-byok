@@ -22,7 +22,8 @@ use tower_http::{
 use url::{Host, Url};
 
 pub use service::{
-    CallDetail, CallSummary, ControlService, DiscoveredModels, ObservabilitySettings,
+    CallDetail, CallSummary, ControlService, DiscoveredModels, ModelConnectivityResult,
+    ObservabilitySettings,
 };
 
 pub fn web_router(service: ControlService, assets: impl AsRef<std::path::Path>) -> Router {
@@ -137,6 +138,10 @@ pub fn api_router(service: ControlService) -> Router {
             "/__byok-api__/api/models/{model_hash}",
             put(models::update).delete(models::remove),
         )
+        .route(
+            "/__byok-api__/api/models/{model_hash}/test",
+            post(models::test),
+        )
         .route("/__byok-api__/api/llm-calls", get(calls::list))
         .route("/__byok-api__/api/llm-calls/{call_id}", get(calls::detail))
         .route(
@@ -246,7 +251,11 @@ mod tests {
         ))
         .await
         .unwrap();
-        let router = api_router(ControlService::new(store).unwrap());
+        let provider = std::sync::Arc::new(crate::provider::ProviderRouter::new(
+            store.clone(),
+            std::time::Duration::from_secs(300),
+        ));
+        let router = api_router(ControlService::new(store, provider).unwrap());
 
         let response = router
             .clone()

@@ -10,7 +10,7 @@ use crate::{
     Result,
 };
 
-use super::{ControlService, DiscoveredModels};
+use super::{ControlService, DiscoveredModels, ModelConnectivityResult};
 
 #[derive(Deserialize)]
 pub struct SaveModels {
@@ -46,6 +46,13 @@ pub async fn update(
     Json(input): Json<ProviderModelInput>,
 ) -> Result<Json<ProviderModel>> {
     Ok(Json(service.update_model(&model_hash, &input).await?))
+}
+
+pub async fn test(
+    State(service): State<ControlService>,
+    Path(model_hash): Path<String>,
+) -> Result<Json<ModelConnectivityResult>> {
+    Ok(Json(service.test_model(&model_hash).await?))
 }
 
 pub async fn discover(

@@ -164,17 +164,22 @@ async fn client_heartbeat_returns_a_server_protocol_heartbeat() {
     let handle = registry.get_or_create("heartbeat-run").await.unwrap();
     let mut output = handle.subscribe();
 
-    handle
-        .command(CursorCommand::Append {
-            seqno: 0,
-            message: Box::new(pb::AgentClientMessage {
+    cursor_server::cursor::bidi_append::append(
+        &registry,
+        cursor_server::cursor::bidi_append::DecodedAppend {
+            request_id: "heartbeat-run".into(),
+            // A transport heartbeat must not wait for missing application messages.
+            seqno: 1,
+            message: pb::AgentClientMessage {
                 message: Some(pb::agent_client_message::Message::ClientHeartbeat(
                     pb::ClientHeartbeat {},
                 )),
-            }),
-        })
-        .await
-        .unwrap();
+            },
+        },
+        None,
+    )
+    .await
+    .unwrap();
 
     let frame = tokio::time::timeout(std::time::Duration::from_secs(1), output.recv())
         .await

@@ -48,7 +48,8 @@ export function AppLayout() {
   const { locale } = useI18n();
   const message = useMessage();
   const location = useLocation();
-  const [actionTarget, setActionTarget] = useState<HTMLDivElement | null>(null);
+  const [leftActionTarget, setLeftActionTarget] = useState<HTMLDivElement | null>(null);
+  const [rightActionTarget, setRightActionTarget] = useState<HTMLDivElement | null>(null);
   const [ads, setAds] = useState<AdSlot[]>([]);
   const [activeAd, setActiveAd] = useState<AdSlot | null>(null);
   const [dismissCandidate, setDismissCandidate] = useState<AdSlot | null>(null);
@@ -241,13 +242,14 @@ export function AppLayout() {
     <main className={styles.content}>
       <div className={styles.actionRegion}>
         <Card className={styles.actions}>
+          <div ref={setLeftActionTarget} className={styles.pageActions} />
           {location.pathname !== "/" && <TooltipTrigger label={t("刷新")}><button className={controls.iconButton} aria-label={t("刷新")} disabled={busy} onClick={() => void appStore.refresh()}>
             <Icon className={busy ? controls.spin : ""} icon={refreshIcon} size="1.1em" />
           </button></TooltipTrigger>}
-          <div ref={setActionTarget} className={styles.pageActions} />
+          <div ref={setRightActionTarget} className={styles.pageActions} />
         </Card>
       </div>
-      <PageActionsTarget.Provider value={actionTarget}>
+      <PageActionsTarget.Provider value={{ left: leftActionTarget, right: rightActionTarget }}>
         <KeepAliveRouteOutlet
           activeCacheKey={location.pathname}
           include={keptAlivePages}

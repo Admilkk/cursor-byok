@@ -8,7 +8,6 @@ use crate::{
         blob_sync::BlobSynchronizer,
         checkpoint::CheckpointBuilder,
         context_sync::RequestContextSynchronizer,
-        interaction,
         proto::agent::v1 as pb,
         request,
         session::CursorSession,
@@ -272,9 +271,6 @@ impl CursorActor {
                                         message,
                                     )) => {
                                         let _ = blob_sync.handle_client(message).await;
-                                    }
-                                    Some(pb::agent_client_message::Message::ClientHeartbeat(_)) => {
-                                        let _ = handle.emit(&interaction::heartbeat());
                                     }
                                     // TODO: ConversationAction has two different delivery paths that
                                     // must not be conflated:

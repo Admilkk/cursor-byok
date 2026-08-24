@@ -198,12 +198,12 @@ export const appStore = {
   async updateCursorModel(hash: string, model: ModelInput) {
     update({ cursorBusy: true, error: null });
     try {
-      await api.updateModel(hash, model);
+      const updated = await api.updateModel(hash, model);
       await appStore.refresh();
-      return true;
+      return updated;
     } catch (cause) {
       update({ error: cause instanceof Error ? cause.message : String(cause) });
-      return false;
+      return null;
     } finally { update({ cursorBusy: false }); }
   },
 

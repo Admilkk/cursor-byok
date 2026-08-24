@@ -86,10 +86,45 @@
   display: flex;
   gap: 2px;
 }
+.testResult {
+  min-width: 0;
+  max-width: 220px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: type.$font-size-xs;
+}
+.testSuccess {
+  color: var(--vscode-testing-iconPassed, #73c991);
+}
+.testError {
+  color: var(--vscode-errorForeground, #f48771);
+}
+.testResultText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.testResultHint {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: currentColor;
+  cursor: help;
+  &:focus-visible {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 2px;
+  }
+}
 .editor {
   display: flex;
   flex-direction: column;
   gap: 14px;
+}
+.editorTestResult {
+  margin-top: 14px;
 }
 .command {
   margin: 0;
