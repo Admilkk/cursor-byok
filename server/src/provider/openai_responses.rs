@@ -453,6 +453,7 @@ fn responses_content(parts: &[ContentPart], text_type: &str) -> Result<Vec<Value
             ContentPart::Text { text } => Some(Ok(json!({"type":text_type, "text":text}))),
             ContentPart::Image { mime_type, data } => Some(Ok(json!({
                 "type":"input_image",
+                "detail":"auto",
                 "image_url":format!("data:{mime_type};base64,{}", STANDARD.encode(data)),
             }))),
         })
@@ -539,5 +540,6 @@ mod tests {
         assert_eq!(input[0]["call_id"], "call");
         assert_eq!(input[0]["output"][0]["type"], "input_text");
         assert_eq!(input[0]["output"][1]["type"], "input_image");
+        assert_eq!(input[0]["output"][1]["detail"], "auto");
     }
 }

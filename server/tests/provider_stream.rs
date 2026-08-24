@@ -305,6 +305,7 @@ async fn openai_responses_raw_stream_does_not_invent_reasoning_effort() {
     assert!(body.get("service_tier").is_none());
     assert_eq!(body["max_output_tokens"], 4096);
     assert_eq!(body["input"][0]["content"][1]["type"], "input_image");
+    assert_eq!(body["input"][0]["content"][1]["detail"], "auto");
     assert_eq!(
         body["input"][0]["content"][1]["image_url"],
         "data:image/png;base64,AQID"
