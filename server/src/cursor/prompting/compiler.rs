@@ -73,7 +73,9 @@ fn render(template: &str, values: &BTreeMap<&str, String>) -> Result<String> {
         cursor = token.end();
     }
     output.push_str(&template[cursor..]);
-    Ok(output.trim().to_string())
+    // Prompt assets are checked out with the platform's native line endings.
+    // Keep provider history byte-stable across Windows and Unix clients.
+    Ok(output.replace("\r\n", "\n").trim().to_string())
 }
 
 fn append_dynamic_tools(

@@ -285,6 +285,7 @@ async fn missing_context_parts_use_current_cursor_response_and_cache_its_content
                     panic!("missing context must use RequestContextArgs")
                 };
                 assert_eq!(args.notes_session_id.as_deref(), Some("mode-conversation"));
+                assert_eq!(args.use_cached, Some(true));
                 requested_context = true;
                 handle
                     .command(CursorCommand::Append {

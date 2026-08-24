@@ -69,6 +69,10 @@ impl RequestContextSynchronizer {
                     message: Some(pb::exec_server_message::Message::RequestContextArgs(
                         pb::RequestContextArgs {
                             notes_session_id: Some(conversation_id.into()),
+                            // Cursor 3.17 uses the pushed request-context provider. A
+                            // context request without this flag is treated as a legacy
+                            // uncached request and no RequestContextResult is emitted.
+                            use_cached: Some(true),
                             ..Default::default()
                         },
                     )),
